@@ -349,7 +349,7 @@ step(List *clist, int c, List *nlist)
 int
 match(State *start, char *s)
 {
-	int i, c;
+	int c;
 	List *clist, *nlist, *t;
 
 	clist = startlist(start, &l1);
