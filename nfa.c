@@ -16,6 +16,15 @@
 #include <string.h>
 #include <unistd.h>
 
+#define DEBUG
+#ifdef DEBUG
+    #define LOG(...) printf(__VA_ARGS__)
+#endif
+
+#ifndef DEBUG
+    #define LOG(...) //comment
+#endif
+
 /*
  * Convert infix regexp re to postfix notation.
  * Insert . as explicit concatenation operator.
@@ -98,6 +107,8 @@ re2post(char *re)
 	for(; nalt > 0; nalt--)
 		*dst++ = '|';
 	*dst = 0;
+
+    LOG("Postfix buffer: %s\n", buf);
 	return buf;
 }
 
@@ -208,6 +219,15 @@ append(Ptrlist *l1, Ptrlist *l2)
 }
 
 /*
+ * Visualize the NFA in stdout
+ */
+/*void visualize_nfa(State * start) {*/
+    /*d*/
+/*}*/
+
+
+
+/*
  * Convert postfix regular expression to NFA.
  * Return start state.
  */
@@ -270,6 +290,7 @@ post2nfa(char *postfix)
 		return NULL;
 
 	patch(e.out, &matchstate);
+
 	return e.start;
 #undef pop
 #undef push
@@ -385,6 +406,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "error in post2nfa %s\n", post);
 		return 1;
 	}
+    /*visualize_nfa(start);*/
 	
 	l1.s = malloc(nstate*sizeof l1.s[0]);
 	l2.s = malloc(nstate*sizeof l2.s[0]);
