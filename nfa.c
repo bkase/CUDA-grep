@@ -127,6 +127,7 @@ typedef struct State State;
 struct State
 {
 	int c;
+    int id;
 	State *out;
 	State *out1;
 	int lastlist;
@@ -140,8 +141,8 @@ state(int c, State *out, State *out1)
 {
 	State *s;
 	
-	nstate++;
 	s = malloc(sizeof *s);
+	s->id = nstate++;
 	s->lastlist = 0;
 	s->c = c;
 	s->out = out;
@@ -217,13 +218,6 @@ append(Ptrlist *l1, Ptrlist *l2)
 	l1->next = l2;
 	return oldl1;
 }
-
-/*
- * Visualize the NFA in stdout
- */
-/*void visualize_nfa(State * start) {*/
-    /*d*/
-/*}*/
 
 
 
@@ -383,6 +377,64 @@ match(State *start, char *s)
 	return ismatch(clist);
 }
 
+/*
+ * Visualize the NFA in stdout
+ */
+int visited[5000];
+int count[5000];
+int visited_index = 0;
+
+int hasSeen(State * start, int * index) {
+    int i;
+    for (i = 0; i < 5000; i++) {
+        if (visited[i] == start->id) {
+            *index = i;
+            return 0;
+        }
+    }
+    return 1;
+}
+
+void visualize_nfa_help(State * start) {
+    int index;
+    if (start == NULL) {
+        printf("null\n");
+        return;
+    }
+
+    if (hasSeen(start, &index) == 0) {
+        printf("Looped %d", count[index]);
+        if (count[index] > 1) {
+            return;
+        }
+    }
+
+    count[start->id]++;
+    visited[start->id] = start->id;
+    
+    if (start->c == Match) {
+        printf(" Match --> ");
+    }
+    else if (start->c == Split) {
+        printf(" Split --> ");
+    }
+    else {
+        printf(" Char(%c) --> ", start->c);
+    }
+    printf("\n");
+
+    /* recursive calls  */
+    visualize_nfa_help(start->out);
+    printf("====BRANCH====\n");
+    visualize_nfa_help(start->out1);
+}
+
+void visualize_nfa(State * start) {
+    memset(visited, 0, 5000*(sizeof(int)));
+    memset(count, 0, 5000*(sizeof(int)));
+    visualize_nfa_help(start);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -406,7 +458,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "error in post2nfa %s\n", post);
 		return 1;
 	}
-    /*visualize_nfa(start);*/
+    visualize_nfa(start);
 	
 	l1.s = malloc(nstate*sizeof l1.s[0]);
 	l2.s = malloc(nstate*sizeof l2.s[0]);
@@ -415,6 +467,8 @@ main(int argc, char **argv)
 			printf("%s\n", argv[i]);
 	return 0;
 }
+
+
 
 /*
  * Permission is hereby granted, free of charge, to any person
