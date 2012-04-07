@@ -1,6 +1,5 @@
-[{ "id": "4", "data":"Split", "out":"3", "out1":"0" 
-},{ "id": "3", "data":"Split", "out":"1", "out1":"2" 
-},{ "id": "1", "data":"Char a", "out":"4", "out1":"-1" 
-},{ "id": "2", "data":"Char b", "out":"4", "out1":"-1" 
+[{ "id": "3", "data":"Split", "out":"1", "out1":"2" 
+},{ "id": "1", "data":"Char a", "out":"0", "out1":"-1" 
 },{ "id": "0", "data":"Match", "out":"-1", "out1":"-1" 
+},{ "id": "2", "data":"Char b", "out":"0", "out1":"-1" 
 }]
