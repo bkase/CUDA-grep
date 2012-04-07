@@ -1,1 +1,1 @@
-[Check out the website](https://bkase.github.com/CUDA-grep-site/)
+[Check out the website](http://bkase.github.com/CUDA-grep-site/)
