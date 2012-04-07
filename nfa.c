@@ -108,7 +108,7 @@ re2post(char *re)
 		*dst++ = '|';
 	*dst = 0;
 
-    LOG("Postfix buffer: %s\n", buf);
+    /*LOG("Postfix buffer: %s\n", buf);*/
 	return buf;
 }
 
@@ -398,13 +398,11 @@ int hasSeen(State * start, int * index) {
 void visualize_nfa_help(State * start) {
     int index;
     if (start == NULL) {
-        printf("null\n");
         return;
     }
 
     if (hasSeen(start, &index) == 0) {
-        printf("Looped %d", count[index]);
-        if (count[index] > 1) {
+        if (count[index] > 0) {
             return;
         }
     }
@@ -412,20 +410,25 @@ void visualize_nfa_help(State * start) {
     count[start->id]++;
     visited[start->id] = start->id;
     
+    char * data;
     if (start->c == Match) {
-        printf(" Match --> ");
+        data = "Match";
     }
     else if (start->c == Split) {
-        printf(" Split --> ");
+        data = "Split";
     }
     else {
-        printf(" Char(%c) --> ", start->c);
+        data = malloc(sizeof(char)*10);
+        sprintf(data, "Char %c", start->c);
     }
-    printf("\n");
 
-    /* recursive calls  */
+    int outId, outId1;
+    outId = (start->out == NULL) ? -1 : start->out->id;
+    outId1 = (start->out1 == NULL) ? -1 : start->out1->id;
+
+    printf("(%d,%s) {%d, %d}\n", start->id, data, outId, outId1);
+
     visualize_nfa_help(start->out);
-    printf("====BRANCH====\n");
     visualize_nfa_help(start->out1);
 }
 
@@ -462,9 +465,9 @@ main(int argc, char **argv)
 	
 	l1.s = malloc(nstate*sizeof l1.s[0]);
 	l2.s = malloc(nstate*sizeof l2.s[0]);
-	for(i=2; i<argc; i++)
-		if(match(start, argv[i]))
-			printf("%s\n", argv[i]);
+    /*for(i=2; i<argc; i++)*/
+        /*if(match(start, argv[i]))*/
+            /*printf("%s\n", argv[i]);*/
 	return 0;
 }
 
