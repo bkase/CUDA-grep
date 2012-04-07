@@ -142,7 +142,7 @@ state(int c, State *out, State *out1)
 	State *s;
 	
 	s = malloc(sizeof *s);
-	s->id = nstate++;
+	s->id = ++nstate;
 	s->lastlist = 0;
 	s->c = c;
 	s->out = out;
@@ -426,7 +426,7 @@ void visualize_nfa_help(State * start) {
     outId = (start->out == NULL) ? -1 : start->out->id;
     outId1 = (start->out1 == NULL) ? -1 : start->out1->id;
 
-    printf("(%d,%s) {%d, %d}\n", start->id, data, outId, outId1);
+    printf("{ \"id\": \"%d\", \"data\":\"%s\", \"out\":\"%d\", \"out1\":\"%d\" \n},", start->id, data, outId, outId1);
 
     visualize_nfa_help(start->out);
     visualize_nfa_help(start->out1);
@@ -435,7 +435,9 @@ void visualize_nfa_help(State * start) {
 void visualize_nfa(State * start) {
     memset(visited, 0, 5000*(sizeof(int)));
     memset(count, 0, 5000*(sizeof(int)));
+    printf("[");
     visualize_nfa_help(start);
+    printf("]\n");
 }
 
 int
