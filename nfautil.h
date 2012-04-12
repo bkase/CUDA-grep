@@ -30,7 +30,7 @@ enum
 
 
 void usage(const char* progname);
-void parseCmdLine(int argc, char **argv, int *visualize); 
+void parseCmdLine(int argc, char **argv, int *visualize, int *postfix); 
 void visualize_nfa_help(State * start);
 void visualize_nfa(State * start);
 double gettime();

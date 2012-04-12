@@ -12,11 +12,12 @@ int visited_index = 0;
 void usage(const char* progname) {
     printf("Usage: %s [options] [pattern] [text]*\n", progname);
     printf("Program Options:\n");
-    printf("  -v  --visualize	Visualize the NFA\n");
-    printf("  -?  --help                 This message\n");
+    printf("  --v  --visualize	Visualize the NFA\n");
+    printf("  --p  --postfix	Visualize the NFA\n"); 
+	printf("  -?  --help                 This message\n");
 }
 
-void parseCmdLine(int argc, char **argv, int *visualize) {
+void parseCmdLine(int argc, char **argv, int *visualize, int *postfix) {
 	if (argc < 3) {
 		usage(argv[0]);
 		exit(EXIT_SUCCESS);
@@ -24,20 +25,28 @@ void parseCmdLine(int argc, char **argv, int *visualize) {
 	
 	int opt;
 	static struct option long_options[] = {
-        {"help",     0, 0,  '?'},
-        {"visulaize",    1, 0,  'v'},
+        {"help",     no_argument, 0,  '?'},
+        {"postfix",     no_argument, 0,  'p'}, 
+		{"visualize",    no_argument, 0,  'v'},
 		{0 ,0, 0, 0}
     };
 
 	*visualize = 0;
-    while ((opt = getopt_long(argc, argv, "v:?", long_options, NULL)) != EOF) {
+	*postfix = 0;
+    while ((opt = getopt_long_only(argc, argv, "v:p:?", long_options, NULL)) != EOF) {
 
         switch (opt) {
-        case 'v':
+        case 'v': {
 			*visualize = 1;
 			break;
+		}
+		case 'p': {
+			*postfix = 1;	
+			break;
+		}
 		default: 
 		 	usage(argv[0]);
+			exit(EXIT_SUCCESS);
 		} 
 	}	
 

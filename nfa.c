@@ -9,6 +9,7 @@
  * Communications of the ACM 11(6) (June 1968), pp. 419-422.
  * 
  * Copyright (c) 2007 Russ Cox.
+ * 
  * Can be distributed under the MIT license, see bottom of file.
  */
 
@@ -358,14 +359,14 @@ match(State *start, char *s)
 int
 main(int argc, char **argv)
 {	
-	int visualize, i;
+	int visualize, postfix, i;
 	char *post;
 	State *start;
 
-	parseCmdLine(argc, argv, &visualize);
+	parseCmdLine(argc, argv, &visualize, &postfix);
 	
 	// argv index at which regex is present
-	int optIndex = 1 + visualize;
+	int optIndex = 1 + visualize + postfix;
 	post = re2post(argv[optIndex]);
 	if(post == NULL){
 		fprintf(stderr, "bad regexp %s\n", argv[optIndex]);
@@ -377,7 +378,11 @@ main(int argc, char **argv)
 		fprintf(stderr, "error in post2nfa %s\n", post);
 		return 1;
 	}
-    
+  
+  	if (postfix == 1) {
+		printf("\nPostfix buffer: %s\n", start);
+	}
+
 	if (visualize == 1) { 
 		printf("\nVisualization Data\n");
 		visualize_nfa(start);
@@ -397,7 +402,6 @@ main(int argc, char **argv)
 	printf("\nTime taken %f \n\n", (endtime - starttime));
 	return EXIT_SUCCESS;
 }
-
 
 
 /*
