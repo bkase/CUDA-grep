@@ -1,5 +1,5 @@
-CC=gcc
-CFLAGS=-O3 
+CC=nvcc
+CFLAGS=-O3 -m64
 CFLAGS_DEBUG=-g
 
 all: wsp wsp_debug

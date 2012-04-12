@@ -15,6 +15,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
+
 
 #define DEBUG
 #ifdef DEBUG
@@ -440,21 +442,44 @@ void visualize_nfa(State * start) {
     printf("]\n");
 }
 
+
+void usage(const char* progname) {
+    printf("Usage: %s [options] [pattern] [text]*\n", progname);
+    printf("Program Options:\n");
+    printf("  -v  --visualize	Visualize the NFA\n");
+    printf("  -?  --help                 This message\n");
+}
+
 int
 main(int argc, char **argv)
-{
+{	
+	int opt;
+	static struct option long_options[] = {
+        {"help",     0, 0,  '?'},
+        {"visulaize",    1, 0,  'v'},
+		{0 ,0, 0, 0}
+    };
+
+	int visualize = 0;
+    while ((opt = getopt_long(argc, argv, "v:?", long_options, NULL)) != EOF) {
+
+        switch (opt) {
+        case 'v':
+			visualize = 1;
+			break;
+		default: 
+		 	usage(argv[0]);
+		} 
+	}	
+	
 	int i;
 	char *post;
 	State *start;
 
-	if(argc < 3){
-		fprintf(stderr, "usage: nfa regexp string...\n");
-		return 1;
-	}
-	
-	post = re2post(argv[1]);
+	int optIndex = 1 + visualize;
+	post = re2post(argv[optIndex]);
 	if(post == NULL){
-		fprintf(stderr, "bad regexp %s\n", argv[1]);
+		fprintf(stderr, "bad regexp %s\n", argv[optIndex]);
 		return 1;
 	}
 
@@ -463,13 +488,17 @@ main(int argc, char **argv)
 		fprintf(stderr, "error in post2nfa %s\n", post);
 		return 1;
 	}
-    visualize_nfa(start);
+    
+	if (visualize == 1) 
+		visualize_nfa(start);
 	
 	l1.s = malloc(nstate*sizeof l1.s[0]);
 	l2.s = malloc(nstate*sizeof l2.s[0]);
-    /*for(i=2; i<argc; i++)*/
-        /*if(match(start, argv[i]))*/
-            /*printf("%s\n", argv[i]);*/
+    
+	printf("\nChecking for matches \n");
+	for(i=optIndex; i<argc; i++)
+        if(match(start, argv[i]))
+            printf("%s\n", argv[i]);
 	return 0;
 }
 
