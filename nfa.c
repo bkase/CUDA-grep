@@ -107,7 +107,6 @@ re2post(char *re)
 		*dst++ = '|';
 	*dst = 0;
 
-    /*LOG("Postfix buffer: %s\n", buf);*/
 	return buf;
 }
 
@@ -351,9 +350,27 @@ match(State *start, char *s)
 	for(; *s; s++){
 		c = *s & 0xFF;
 		step(clist, c, nlist);
-		t = clist; clist = nlist; nlist = t;	/* swap clist, nlist */
+		t = clist; clist = nlist; nlist = t;	// swap clist, nlist 
+		
+		// check for a match in the middle of the string
+		if (ismatch(clist))
+			return 1;
+
 	}
 	return ismatch(clist);
+}
+
+/* Check for a string match at all possible start positions */
+int 
+anyMatch(State *start, char *s) { 
+	int isMatch = match(start, s);
+	int index = 0;
+	int len = strlen(s);
+	while (!isMatch && index <= len) {
+		isMatch = match(start, s + index);
+		index ++;
+	}
+	return isMatch;
 }
 
 int
@@ -394,7 +411,7 @@ main(int argc, char **argv)
 	printf("\nChecking for matches \n");
 	double starttime = gettime();
 	for(i=optIndex+1; i<argc; i++) {
-        if(match(start, argv[i]))
+        if(anyMatch(start, argv[i]))
             printf("%d: %s\n", i-(optIndex), argv[i]);
 	}
 	double endtime = gettime();

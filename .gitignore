@@ -1,6 +1,9 @@
 #Comment for .gitignore
 
 *.un~
+.backups/
+nfa
+nfa_debug
 a.out
 re2/obj/
 re2/lib/
