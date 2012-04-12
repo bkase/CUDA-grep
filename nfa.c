@@ -15,6 +15,10 @@
 
 #include "nfautil.h"
 
+#define LINE_SIZE 200
+
+
+
 #define DEBUG
 #ifdef DEBUG
     #define LOG(...) printf(__VA_ARGS__)
@@ -373,16 +377,50 @@ anyMatch(State *start, char *s) {
 	return isMatch;
 }
 
-int
+void readFile(char *fileName, char ***lines, int *lineIndex) {
+	
+	FILE *fp = fopen(fileName, "r");
+	if (fp == NULL) {
+		printf("Error reading file \n");
+		exit (EXIT_FAILURE);
+	}
+
+	int numLines = 8;
+	// array of lines
+	*lines = malloc (sizeof(char *) * numLines); 
+	
+	// single line
+	char *line = malloc (sizeof(char) * LINE_SIZE);
+	
+	*lineIndex = 0;
+	while (fgets (line, LINE_SIZE, fp) != NULL) {
+		(*lines)[(*lineIndex)] = line;	
+		(*lineIndex) ++;
+
+		line = malloc(sizeof(char) * LINE_SIZE);	
+
+		if (*lineIndex == numLines-1) {
+			numLines = numLines * 2;
+			(*lines) = realloc((*lines), sizeof(char *) * numLines);
+		}
+	}
+	
+	fclose(fp);
+}
+
+	int
 main(int argc, char **argv)
 {	
 	int visualize, postfix, i;
 	char *fileName = NULL;
 	char *post;
 	State *start;
-
+	double starttime, endtime; 
+	char **lines;
+	int lineIndex;
+		
 	parseCmdLine(argc, argv, &visualize, &postfix, &fileName);
-	
+
 	// argv index at which regex is present
 	int optIndex = 1 + visualize + postfix;
 	if (fileName != NULL)
@@ -413,30 +451,34 @@ main(int argc, char **argv)
 	l2.s = malloc(nstate*sizeof l2.s[0]);
     
 	printf("\nChecking for matches \n");
-	double starttime = gettime();
+	fflush(stdout); // flush stdout before getting start time
 
-	FILE *fp;
-	char *str;
+	// if no file is specified
 	if (fileName == NULL) {
+		starttime = gettime();
 		for(i=optIndex+1; i<argc; i++) {
 			if(anyMatch(start, argv[i]))
 				printf("%d: %s\n", i-(optIndex), argv[i]);
 		}
+		endtime = gettime();
 	}
 	else {
-		fp = fopen(fileName, "r");
-		str = malloc(sizeof(char) * 200);
-		i = 1;
-		while (fgets (str, 200, fp) != NULL) {
-			if(anyMatch(start, str))
-       	     printf("%d: %s\n", i, str);
-			i++;
+		readFile(fileName, &lines, &lineIndex); 	
+
+		starttime = gettime(); 
+		for (i = 0; i < lineIndex; i++) { 
+			if (anyMatch(start, lines[i])) 
+			  printf("%d: %s\n", i, lines[i]);
 		}
-		fclose(fp);
+		endtime = gettime();
 	}
-	double endtime = gettime();
 	
 	printf("\nTime taken %f \n\n", (endtime - starttime));
+	
+	for (i = 0; i < lineIndex; i++) {
+		free(lines[i]);
+	}
+	free(lines);
 	return EXIT_SUCCESS;
 }
 
