@@ -11,13 +11,6 @@
  * Copyright (c) 2007 Russ Cox.
  * Can be distributed under the MIT license, see bottom of file.
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <getopt.h>
-#include <sys/time.h>
-
 
 #include "nfautil.h"
 
@@ -362,38 +355,6 @@ match(State *start, char *s)
 	return ismatch(clist);
 }
 
-
-void usage(const char* progname) {
-    printf("Usage: %s [options] [pattern] [text]*\n", progname);
-    printf("Program Options:\n");
-    printf("  -v  --visualize	Visualize the NFA\n");
-    printf("  -?  --help                 This message\n");
-}
-
-void parseCmdLine(int argc, char **argv, int *visualize) {
-	int opt;
-	static struct option long_options[] = {
-        {"help",     0, 0,  '?'},
-        {"visulaize",    1, 0,  'v'},
-		{0 ,0, 0, 0}
-    };
-
-	*visualize = 0;
-    while ((opt = getopt_long(argc, argv, "v:?", long_options, NULL)) != EOF) {
-
-        switch (opt) {
-        case 'v':
-			*visualize = 1;
-			break;
-		default: 
-		 	usage(argv[0]);
-		} 
-	}	
-
-}
-
-
-
 int
 main(int argc, char **argv)
 {	
@@ -402,11 +363,6 @@ main(int argc, char **argv)
 	State *start;
 
 	parseCmdLine(argc, argv, &visualize);
-	
-	if (argc < 3) {
-		usage(argv[0]);
-		return EXIT_SUCCESS;
-	}
 	
 	// argv index at which regex is present
 	int optIndex = 1 + visualize;
@@ -422,18 +378,19 @@ main(int argc, char **argv)
 		return 1;
 	}
     
-	printf("\nVisualization Data\n");
-	if (visualize == 1) 
+	if (visualize == 1) { 
+		printf("\nVisualization Data\n");
 		visualize_nfa(start);
-	
+	}
+
 	l1.s = malloc(nstate*sizeof l1.s[0]);
 	l2.s = malloc(nstate*sizeof l2.s[0]);
     
 	printf("\nChecking for matches \n");
 	double starttime = gettime();
-	for(i=optIndex; i<argc; i++) {
+	for(i=optIndex+1; i<argc; i++) {
         if(match(start, argv[i]))
-            printf("%s\n", argv[i]);
+            printf("%d: %s\n", i-(optIndex), argv[i]);
 	}
 	double endtime = gettime();
 

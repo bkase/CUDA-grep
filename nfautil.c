@@ -9,6 +9,41 @@ int count[5000];
 int visited_index = 0;
 
 
+void usage(const char* progname) {
+    printf("Usage: %s [options] [pattern] [text]*\n", progname);
+    printf("Program Options:\n");
+    printf("  -v  --visualize	Visualize the NFA\n");
+    printf("  -?  --help                 This message\n");
+}
+
+void parseCmdLine(int argc, char **argv, int *visualize) {
+	if (argc < 3) {
+		usage(argv[0]);
+		exit(EXIT_SUCCESS);
+	}
+	
+	int opt;
+	static struct option long_options[] = {
+        {"help",     0, 0,  '?'},
+        {"visulaize",    1, 0,  'v'},
+		{0 ,0, 0, 0}
+    };
+
+	*visualize = 0;
+    while ((opt = getopt_long(argc, argv, "v:?", long_options, NULL)) != EOF) {
+
+        switch (opt) {
+        case 'v':
+			*visualize = 1;
+			break;
+		default: 
+		 	usage(argv[0]);
+		} 
+	}	
+
+}
+
+
 int hasSeen(State * start, int * index) {
     int i;
     for (i = 0; i < 5000; i++) {
