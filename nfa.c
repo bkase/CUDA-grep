@@ -377,13 +377,17 @@ int
 main(int argc, char **argv)
 {	
 	int visualize, postfix, i;
+	char *fileName = NULL;
 	char *post;
 	State *start;
 
-	parseCmdLine(argc, argv, &visualize, &postfix);
+	parseCmdLine(argc, argv, &visualize, &postfix, &fileName);
 	
 	// argv index at which regex is present
 	int optIndex = 1 + visualize + postfix;
+	if (fileName != NULL)
+		optIndex += 2;
+
 	post = re2post(argv[optIndex]);
 	if(post == NULL){
 		fprintf(stderr, "bad regexp %s\n", argv[optIndex]);
@@ -410,12 +414,28 @@ main(int argc, char **argv)
     
 	printf("\nChecking for matches \n");
 	double starttime = gettime();
-	for(i=optIndex+1; i<argc; i++) {
-        if(anyMatch(start, argv[i]))
-            printf("%d: %s\n", i-(optIndex), argv[i]);
+
+	FILE *fp;
+	char *str;
+	if (fileName == NULL) {
+		for(i=optIndex+1; i<argc; i++) {
+			if(anyMatch(start, argv[i]))
+				printf("%d: %s\n", i-(optIndex), argv[i]);
+		}
+	}
+	else {
+		fp = fopen(fileName, "r");
+		str = malloc(sizeof(char) * 200);
+		i = 1;
+		while (fgets (str, 200, fp) != NULL) {
+			if(anyMatch(start, str))
+       	     printf("%d: %s\n", i, str);
+			i++;
+		}
+		fclose(fp);
 	}
 	double endtime = gettime();
-
+	
 	printf("\nTime taken %f \n\n", (endtime - starttime));
 	return EXIT_SUCCESS;
 }

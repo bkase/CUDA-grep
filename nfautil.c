@@ -17,7 +17,7 @@ void usage(const char* progname) {
 	printf("  -?  --help                 This message\n");
 }
 
-void parseCmdLine(int argc, char **argv, int *visualize, int *postfix) {
+void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fileName) {
 	if (argc < 3) {
 		usage(argv[0]);
 		exit(EXIT_SUCCESS);
@@ -28,12 +28,13 @@ void parseCmdLine(int argc, char **argv, int *visualize, int *postfix) {
         {"help",     no_argument, 0,  '?'},
         {"postfix",     no_argument, 0,  'p'}, 
 		{"visualize",    no_argument, 0,  'v'},
+		{"file",     required_argument, 0,  'f'},
 		{0 ,0, 0, 0}
     };
 
 	*visualize = 0;
 	*postfix = 0;
-    while ((opt = getopt_long_only(argc, argv, "v:p:?", long_options, NULL)) != EOF) {
+    while ((opt = getopt_long_only(argc, argv, "v:p:f:?", long_options, NULL)) != EOF) {
 
         switch (opt) {
         case 'v': {
@@ -42,6 +43,10 @@ void parseCmdLine(int argc, char **argv, int *visualize, int *postfix) {
 		}
 		case 'p': {
 			*postfix = 1;	
+			break;
+		}
+		case 'f': {
+			*fileName = optarg; 
 			break;
 		}
 		default: 
