@@ -17,8 +17,6 @@
 
 #define LINE_SIZE 200
 
-
-
 #define DEBUG
 #ifdef DEBUG
     #define LOG(...) printf(__VA_ARGS__)
@@ -404,6 +402,7 @@ void readFile(char *fileName, char ***lines, int *lineIndex) {
 			(*lines) = realloc((*lines), sizeof(char *) * numLines);
 		}
 	}
+	(*lines)[(*lineIndex)] = line;	
 	
 	fclose(fp);
 }
@@ -475,10 +474,17 @@ main(int argc, char **argv)
 	
 	printf("\nTime taken %f \n\n", (endtime - starttime));
 	
-	for (i = 0; i < lineIndex; i++) {
+	// free up memory
+	for (i = 0; i <= lineIndex; i++) {
 		free(lines[i]);
 	}
 	free(lines);
+	
+	//TODO need to free all the states
+	
+	free(l1.s);
+	free(l2.s);
+
 	return EXIT_SUCCESS;
 }
 
