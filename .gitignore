@@ -1,5 +1,6 @@
 #Comment for .gitignore
 
+/testbench/RESULTS
 *.un~
 .backups/
 nfa

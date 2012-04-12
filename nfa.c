@@ -410,7 +410,7 @@ void readFile(char *fileName, char ***lines, int *lineIndex) {
 	int
 main(int argc, char **argv)
 {	
-	int visualize, postfix, i;
+	int visualize, postfix, i, time;
 	char *fileName = NULL;
 	char *post;
 	State *start;
@@ -418,7 +418,7 @@ main(int argc, char **argv)
 	char **lines;
 	int lineIndex;
 		
-	parseCmdLine(argc, argv, &visualize, &postfix, &fileName);
+	parseCmdLine(argc, argv, &visualize, &postfix, &fileName, &time);
 
 	// argv index at which regex is present
 	int optIndex = 1 + visualize + postfix;
@@ -449,7 +449,6 @@ main(int argc, char **argv)
 	l1.s = malloc(nstate*sizeof l1.s[0]);
 	l2.s = malloc(nstate*sizeof l2.s[0]);
     
-	printf("\nChecking for matches \n");
 	fflush(stdout); // flush stdout before getting start time
 
 	// if no file is specified
@@ -467,13 +466,14 @@ main(int argc, char **argv)
 		starttime = gettime(); 
 		for (i = 0; i < lineIndex; i++) { 
 			if (anyMatch(start, lines[i])) 
-			  printf("%d: %s\n", i, lines[i]);
+			  printf("%s", lines[i]);
 		}
 		endtime = gettime();
 	}
 	
-	printf("\nTime taken %f \n\n", (endtime - starttime));
-	
+	if (time) {
+		printf("\nTime taken %f \n\n", (endtime - starttime));
+	}
 	// free up memory
 	for (i = 0; i <= lineIndex; i++) {
 		free(lines[i]);
