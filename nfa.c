@@ -16,7 +16,10 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <sys/time.h>
 
+
+#include "nfautil.h"
 
 #define DEBUG
 #ifdef DEBUG
@@ -114,26 +117,6 @@ re2post(char *re)
 	return buf;
 }
 
-/*
- * Represents an NFA state plus zero or one or two arrows exiting.
- * if c == Match, no arrows out; matching state.
- * If c == Split, unlabeled arrows to out and out1 (if != NULL).
- * If c < 256, labeled arrow with character c to out.
- */
-enum
-{
-	Match = 256,
-	Split = 257
-};
-typedef struct State State;
-struct State
-{
-	int c;
-    int id;
-	State *out;
-	State *out1;
-	int lastlist;
-};
 State matchstate = { Match };	/* matching state */
 int nstate;
 
@@ -379,69 +362,6 @@ match(State *start, char *s)
 	return ismatch(clist);
 }
 
-/*
- * Visualize the NFA in stdout
- */
-int visited[5000];
-int count[5000];
-int visited_index = 0;
-
-int hasSeen(State * start, int * index) {
-    int i;
-    for (i = 0; i < 5000; i++) {
-        if (visited[i] == start->id) {
-            *index = i;
-            return 0;
-        }
-    }
-    return 1;
-}
-
-void visualize_nfa_help(State * start) {
-    int index;
-    if (start == NULL) {
-        return;
-    }
-
-    if (hasSeen(start, &index) == 0) {
-        if (count[index] > 0) {
-            return;
-        }
-    }
-
-    count[start->id]++;
-    visited[start->id] = start->id;
-    
-    char * data;
-    if (start->c == Match) {
-        data = "Match";
-    }
-    else if (start->c == Split) {
-        data = "Split";
-    }
-    else {
-        data = malloc(sizeof(char)*10);
-        sprintf(data, "Char %c", start->c);
-    }
-
-    int outId, outId1;
-    outId = (start->out == NULL) ? -1 : start->out->id;
-    outId1 = (start->out1 == NULL) ? -1 : start->out1->id;
-
-    printf("{ \"id\": \"%d\", \"data\":\"%s\", \"out\":\"%d\", \"out1\":\"%d\" \n},", start->id, data, outId, outId1);
-
-    visualize_nfa_help(start->out);
-    visualize_nfa_help(start->out1);
-}
-
-void visualize_nfa(State * start) {
-    memset(visited, 0, 5000*(sizeof(int)));
-    memset(count, 0, 5000*(sizeof(int)));
-    printf("[");
-    visualize_nfa_help(start);
-    printf("]\n");
-}
-
 
 void usage(const char* progname) {
     printf("Usage: %s [options] [pattern] [text]*\n", progname);
@@ -450,9 +370,7 @@ void usage(const char* progname) {
     printf("  -?  --help                 This message\n");
 }
 
-int
-main(int argc, char **argv)
-{	
+void parseCmdLine(int argc, char **argv, int *visualize) {
 	int opt;
 	static struct option long_options[] = {
         {"help",     0, 0,  '?'},
@@ -460,22 +378,37 @@ main(int argc, char **argv)
 		{0 ,0, 0, 0}
     };
 
-	int visualize = 0;
+	*visualize = 0;
     while ((opt = getopt_long(argc, argv, "v:?", long_options, NULL)) != EOF) {
 
         switch (opt) {
         case 'v':
-			visualize = 1;
+			*visualize = 1;
 			break;
 		default: 
 		 	usage(argv[0]);
 		} 
 	}	
-	
-	int i;
+
+}
+
+
+
+int
+main(int argc, char **argv)
+{	
+	int visualize, i;
 	char *post;
 	State *start;
 
+	parseCmdLine(argc, argv, &visualize);
+	
+	if (argc < 3) {
+		usage(argv[0]);
+		return EXIT_SUCCESS;
+	}
+	
+	// argv index at which regex is present
 	int optIndex = 1 + visualize;
 	post = re2post(argv[optIndex]);
 	if(post == NULL){
@@ -489,6 +422,7 @@ main(int argc, char **argv)
 		return 1;
 	}
     
+	printf("\nVisualization Data\n");
 	if (visualize == 1) 
 		visualize_nfa(start);
 	
@@ -496,10 +430,15 @@ main(int argc, char **argv)
 	l2.s = malloc(nstate*sizeof l2.s[0]);
     
 	printf("\nChecking for matches \n");
-	for(i=optIndex; i<argc; i++)
+	double starttime = gettime();
+	for(i=optIndex; i<argc; i++) {
         if(match(start, argv[i]))
             printf("%s\n", argv[i]);
-	return 0;
+	}
+	double endtime = gettime();
+
+	printf("\nTime taken %f \n\n", (endtime - starttime));
+	return EXIT_SUCCESS;
 }
 
 

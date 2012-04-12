@@ -1,16 +1,17 @@
-CC=nvcc
-CFLAGS=-O3 -m64
+CC=gcc
+NVCC=nvcc
+CFLAGS=-O3
 CFLAGS_DEBUG=-g
 
-all: wsp wsp_debug
+all: nfa nfa_debug
 
 .PHONY: clean
 
 clean: 
-	rm -rf wsp wsp_debug *~ *.o
+	rm -rf nfa nfa_debug *.o
 
-wsp: nfa.c
-	$(CC) $(CFLAGS) $< -o nfa
+nfa: nfa.c nfautil.c 
+	$(NVCC) $(CFLAGS) nfa.c nfautil.c -o nfa
 
-wsp_debug: nfa.c
-	$(CC) $(CFLAGS_DEBUG) $< -o nfa_debug
+nfa_debug: nfa.c nfautil.c
+	$(NVCC) $(CFLAGS_DEBUG) nfa.c nfautil.c -o nfa_debug
