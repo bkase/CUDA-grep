@@ -10,3 +10,4 @@ a.out
 re2/obj/
 re2/lib/
 *.o
+node_modules/
