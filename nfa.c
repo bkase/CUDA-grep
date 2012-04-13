@@ -421,9 +421,14 @@ main(int argc, char **argv)
 	parseCmdLine(argc, argv, &visualize, &postfix, &fileName, &time);
 
 	// argv index at which regex is present
-	int optIndex = 1 + visualize + postfix;
+	int optIndex = 1 + visualize + postfix + time;
 	if (fileName != NULL)
 		optIndex += 2;
+
+	if (argc <= optIndex) {
+		usage (argv[0]);
+		exit(EXIT_SUCCESS);
+	}
 
 	post = re2post(argv[optIndex]);
 	if(post == NULL){
@@ -466,6 +471,7 @@ main(int argc, char **argv)
 		starttime = gettime(); 
 		for (i = 0; i < lineIndex; i++) { 
 			if (anyMatch(start, lines[i])) 
+//TODO need to put this statement out side loop body
 			  printf("%s", lines[i]);
 		}
 		endtime = gettime();
@@ -480,7 +486,7 @@ main(int argc, char **argv)
 	}
 	free(lines);
 	
-	//TODO need to free all the states
+//TODO need to free all the states
 	
 	free(l1.s);
 	free(l2.s);

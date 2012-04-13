@@ -12,9 +12,11 @@ int visited_index = 0;
 void usage(const char* progname) {
     printf("Usage: %s [options] [pattern] [text]*\n", progname);
     printf("Program Options:\n");
-    printf("  --v  --visualize	Visualize the NFA\n");
-    printf("  --p  --postfix	Visualize the NFA\n"); 
-	printf("  -?  --help                 This message\n");
+    printf("  -v	Visualize the NFA\n");
+    printf("  -p	View postfix expression\n"); 
+	printf("  -t	Print timing data\n");
+    printf("  -f <FILE> --file Input file\n");	
+	printf("  -? This message\n");
 }
 
 void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fileName, int *time) {
@@ -35,6 +37,7 @@ void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fi
 
 	*visualize = 0;
 	*postfix = 0;
+	*time = 0;
     while ((opt = getopt_long_only(argc, argv, "t:v:p:f:?", long_options, NULL)) != EOF) {
 
         switch (opt) {

@@ -1,6 +1,7 @@
 #!/bin/bash
 
-teststrings=("ROMEO" "JULIET" "ROMEO|JULIET" "R+" "R*" "R" "");
+teststrings=("ROMEO" "JULIET" "ROMEO|JULIET" "R+" "R*" "R" "R+R*" "R*R+" "RR+"
+"R+|J+" "(R|J)ULIET");
 
 date >> RESULTS;
 echo "" >> RESULTS;
