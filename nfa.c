@@ -339,6 +339,15 @@ copyStringsToDevice(char **lines, int lineIndex, char ***device_lines) {
 
 }
 
+// free all states except Match which is statically allocated
+void freeNFAStates(State *s) {
+	if (s != NULL && s->c != Match) {
+		freeNFAStates(s->out);
+		freeNFAStates(s->out1);
+		free(s);
+	}
+}
+
 int
 main(int argc, char **argv)
 {	
@@ -448,7 +457,7 @@ main(int argc, char **argv)
 		printf("\nTime taken %f \n\n", (endtime - starttime));
 	}
 	// free up memory
-	//TODO need to free all the states
+	freeNFAStates(start);		
 
 	free(l1.s);
 	free(l2.s);
