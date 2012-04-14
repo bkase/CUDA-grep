@@ -15,113 +15,25 @@
 
 #include "nfautil.h"
 
-#define LINE_SIZE 200
-
 #define DEBUG
 #ifdef DEBUG
-    #define LOG(...) printf(__VA_ARGS__)
+#define LOG(...) printf(__VA_ARGS__)
 #endif
 
 #ifndef DEBUG
-    #define LOG(...) //comment
+#define LOG(...) //comment
 #endif
-
-/*
- * Convert infix regexp re to postfix notation.
- * Insert . as explicit concatenation operator.
- * Cheesy parser, return static buffer.
- */
-char*
-re2post(char *re)
-{
-	int nalt, natom;
-	static char buf[8000];
-	char *dst;
-	struct {
-		int nalt;
-		int natom;
-	} paren[100], *p;
-	
-	p = paren;
-	dst = buf;
-	nalt = 0;
-	natom = 0;
-	if(strlen(re) >= sizeof buf/2)
-		return NULL;
-	for(; *re; re++){
-		switch(*re){
-		case '(':
-			if(natom > 1){
-				--natom;
-				*dst++ = '.';
-			}
-			if(p >= paren+100)
-				return NULL;
-			p->nalt = nalt;
-			p->natom = natom;
-			p++;
-			nalt = 0;
-			natom = 0;
-			break;
-		case '|':
-			if(natom == 0)
-				return NULL;
-			while(--natom > 0)
-				*dst++ = '.';
-			nalt++;
-			break;
-		case ')':
-			if(p == paren)
-				return NULL;
-			if(natom == 0)
-				return NULL;
-			while(--natom > 0)
-				*dst++ = '.';
-			for(; nalt > 0; nalt--)
-				*dst++ = '|';
-			--p;
-			nalt = p->nalt;
-			natom = p->natom;
-			natom++;
-			break;
-		case '*':
-		case '+':
-		case '?':
-			if(natom == 0)
-				return NULL;
-			*dst++ = *re;
-			break;
-		default:
-			if(natom > 1){
-				--natom;
-				*dst++ = '.';
-			}
-			*dst++ = *re;
-			natom++;
-			break;
-		}
-	}
-	if(p != paren)
-		return NULL;
-	while(--natom > 0)
-		*dst++ = '.';
-	for(; nalt > 0; nalt--)
-		*dst++ = '|';
-	*dst = 0;
-
-	return buf;
-}
 
 State matchstate = { Match };	/* matching state */
 int nstate;
 
 /* Allocate and initialize State */
-State*
+	State*
 state(int c, State *out, State *out1)
 {
 	State *s;
-	
-	s = malloc(sizeof *s);
+
+	s = (State *) malloc(sizeof *s);
 	s->id = ++nstate;
 	s->lastlist = 0;
 	s->c = c;
@@ -145,7 +57,7 @@ struct Frag
 };
 
 /* Initialize Frag struct. */
-Frag
+	Frag
 frag(State *start, Ptrlist *out)
 {
 	Frag n = { start, out };
@@ -164,22 +76,22 @@ union Ptrlist
 };
 
 /* Create singleton list containing just outp. */
-Ptrlist*
+	Ptrlist*
 list1(State **outp)
 {
 	Ptrlist *l;
-	
+
 	l = (Ptrlist*)outp;
 	l->next = NULL;
 	return l;
 }
 
 /* Patch the list of states at out to point to start. */
-void
+	void
 patch(Ptrlist *l, State *s)
 {
 	Ptrlist *next;
-	
+
 	for(; l; l=next){
 		next = l->next;
 		l->s = s;
@@ -187,11 +99,11 @@ patch(Ptrlist *l, State *s)
 }
 
 /* Join the two lists l1 and l2, returning the combination. */
-Ptrlist*
+	Ptrlist*
 append(Ptrlist *l1, Ptrlist *l2)
 {
 	Ptrlist *oldl1;
-	
+
 	oldl1 = l1;
 	while(l1->next)
 		l1 = l1->next;
@@ -205,57 +117,57 @@ append(Ptrlist *l1, Ptrlist *l2)
  * Convert postfix regular expression to NFA.
  * Return start state.
  */
-State*
+	State*
 post2nfa(char *postfix)
 {
 	char *p;
 	Frag stack[1000], *stackp, e1, e2, e;
 	State *s;
-	
+
 	// fprintf(stderr, "postfix: %s\n", postfix);
 
 	if(postfix == NULL)
 		return NULL;
 
-	#define push(s) *stackp++ = s
-	#define pop() *--stackp
+#define push(s) *stackp++ = s
+#define pop() *--stackp
 
 	stackp = stack;
 	for(p=postfix; *p; p++){
 		switch(*p){
-		default:
-			s = state(*p, NULL, NULL);
-			push(frag(s, list1(&s->out)));
-			break;
-		case '.':	/* catenate */
-			e2 = pop();
-			e1 = pop();
-			patch(e1.out, e2.start);
-			push(frag(e1.start, e2.out));
-			break;
-		case '|':	/* alternate */
-			e2 = pop();
-			e1 = pop();
-			s = state(Split, e1.start, e2.start);
-			push(frag(s, append(e1.out, e2.out)));
-			break;
-		case '?':	/* zero or one */
-			e = pop();
-			s = state(Split, e.start, NULL);
-			push(frag(s, append(e.out, list1(&s->out1))));
-			break;
-		case '*':	/* zero or more */
-			e = pop();
-			s = state(Split, e.start, NULL);
-			patch(e.out, s);
-			push(frag(s, list1(&s->out1)));
-			break;
-		case '+':	/* one or more */
-			e = pop();
-			s = state(Split, e.start, NULL);
-			patch(e.out, s);
-			push(frag(e.start, list1(&s->out1)));
-			break;
+			default:
+				s = state(*p, NULL, NULL);
+				push(frag(s, list1(&s->out)));
+				break;
+			case '.':	/* catenate */
+				e2 = pop();
+				e1 = pop();
+				patch(e1.out, e2.start);
+				push(frag(e1.start, e2.out));
+				break;
+			case '|':	/* alternate */
+				e2 = pop();
+				e1 = pop();
+				s = state(Split, e1.start, e2.start);
+				push(frag(s, append(e1.out, e2.out)));
+				break;
+			case '?':	/* zero or one */
+				e = pop();
+				s = state(Split, e.start, NULL);
+				push(frag(s, append(e.out, list1(&s->out1))));
+				break;
+			case '*':	/* zero or more */
+				e = pop();
+				s = state(Split, e.start, NULL);
+				patch(e.out, s);
+				push(frag(s, list1(&s->out1)));
+				break;
+			case '+':	/* one or more */
+				e = pop();
+				s = state(Split, e.start, NULL);
+				patch(e.out, s);
+				push(frag(e.start, list1(&s->out1)));
+				break;
 		}
 	}
 
@@ -283,7 +195,7 @@ void addstate(List*, State*);
 void step(List*, int, List*);
 
 /* Compute initial state list */
-List*
+	List*
 startlist(State *start, List *l)
 {
 	l->n = 0;
@@ -293,7 +205,7 @@ startlist(State *start, List *l)
 }
 
 /* Check whether state list contains a match. */
-int
+	int
 ismatch(List *l)
 {
 	int i;
@@ -305,7 +217,7 @@ ismatch(List *l)
 }
 
 /* Add s to l, following unlabeled arrows. */
-void
+	void
 addstate(List *l, State *s)
 {
 	if(s == NULL || s->lastlist == listid)
@@ -325,7 +237,7 @@ addstate(List *l, State *s)
  * past the character c,
  * to create next NFA state set nlist.
  */
-void
+	void
 step(List *clist, int c, List *nlist)
 {
 	int i;
@@ -341,7 +253,7 @@ step(List *clist, int c, List *nlist)
 }
 
 /* Run NFA to determine whether it matches s. */
-int
+	int
 match(State *start, char *s)
 {
 	int c;
@@ -353,7 +265,7 @@ match(State *start, char *s)
 		c = *s & 0xFF;
 		step(clist, c, nlist);
 		t = clist; clist = nlist; nlist = t;	// swap clist, nlist 
-		
+
 		// check for a match in the middle of the string
 		if (ismatch(clist))
 			return 1;
@@ -375,49 +287,51 @@ anyMatch(State *start, char *s) {
 	return isMatch;
 }
 
-void readFile(char *fileName, char ***lines, int *lineIndex) {
+/* device_start is a state that needs to have a 
+ * pointer to out. This needs to be called for all states
+ * Note: start has already been memcopyed over 
+ * pos refers to whether its out or out1*/
+void
+copyStateToDevice(State *device_start, State *out, int pos) {
+
+	if (out != NULL) {
+		State *device_out;
+		// allocate memory for out state & copy it over
+		cudaMalloc((void **) &device_out, sizeof (State));	
+		cudaMemcpy(device_out, out, sizeof (State), cudaMemcpyHostToDevice);
+		// make start point to out
+		if (pos == 0) 
+			cudaMemcpy(device_start->out, device_out, sizeof (State), cudaMemcpyHostToDevice);
+		else 
+			cudaMemcpy(device_start->out1, device_out, sizeof (State), cudaMemcpyHostToDevice);
 	
-	FILE *fp = fopen(fileName, "r");
-	if (fp == NULL) {
-		printf("Error reading file \n");
-		exit (EXIT_FAILURE);
+		copyStateToDevice(device_out, out->out, 0);
+		copyStateToDevice(device_out, out->out1, 1);
+	}	
+	else {
+		cudaMemcpy(device_start->out, NULL, sizeof (State), cudaMemcpyHostToDevice);
 	}
-
-	int numLines = 8;
-	// array of lines
-	*lines = malloc (sizeof(char *) * numLines); 
-	
-	// single line
-	char *line = malloc (sizeof(char) * LINE_SIZE);
-	
-	*lineIndex = 0;
-	while (fgets (line, LINE_SIZE, fp) != NULL) {
-		(*lines)[(*lineIndex)] = line;	
-		(*lineIndex) ++;
-
-		line = malloc(sizeof(char) * LINE_SIZE);	
-
-		if (*lineIndex == numLines-1) {
-			numLines = numLines * 2;
-			(*lines) = realloc((*lines), sizeof(char *) * numLines);
-		}
-	}
-	(*lines)[(*lineIndex)] = line;	
-	
-	fclose(fp);
 }
 
-	int
+void 
+copyNFAToDevice(State **device_start, State *start) {
+	cudaMalloc((void **) device_start, sizeof (State));
+	cudaMemcpy(*device_start, start, sizeof (State), cudaMemcpyHostToDevice);
+	copyStateToDevice(*device_start, start->out, 0);
+	copyStateToDevice(*device_start, start->out1, 0);
+}
+
+int
 main(int argc, char **argv)
 {	
-	int visualize, postfix, i, time;
+	int visualize, postfix, i, time, parallel = 0;
 	char *fileName = NULL;
 	char *post;
 	State *start;
 	double starttime, endtime; 
 	char **lines;
 	int lineIndex;
-		
+
 	parseCmdLine(argc, argv, &visualize, &postfix, &fileName, &time);
 
 	// argv index at which regex is present
@@ -441,8 +355,8 @@ main(int argc, char **argv)
 		fprintf(stderr, "error in post2nfa %s\n", post);
 		return 1;
 	}
-  
-  	if (postfix == 1) {
+
+	if (postfix == 1) {
 		printf("\nPostfix buffer: %s\n", start);
 	}
 
@@ -451,32 +365,49 @@ main(int argc, char **argv)
 		visualize_nfa(start);
 	}
 
-	l1.s = malloc(nstate*sizeof l1.s[0]);
-	l2.s = malloc(nstate*sizeof l2.s[0]);
-    
+	l1.s = (State **) malloc(nstate*sizeof l1.s[0]);
+	l2.s = (State **) malloc(nstate*sizeof l2.s[0]);
+
 	fflush(stdout); // flush stdout before getting start time
 
-	// if no file is specified
-	if (fileName == NULL) {
-		starttime = gettime();
-		for(i=optIndex+1; i<argc; i++) {
-			if(anyMatch(start, argv[i]))
-				printf("%d: %s\n", i-(optIndex), argv[i]);
-		}
-		endtime = gettime();
-	}
-	else {
-		readFile(fileName, &lines, &lineIndex); 	
+	// sequential matching
+	if (parallel != 1) {
 
-		starttime = gettime(); 
-		for (i = 0; i < lineIndex; i++) { 
-			if (anyMatch(start, lines[i])) 
-//TODO need to put this statement out side loop body
-			  printf("%s", lines[i]);
+		// if no file is specified
+		if (fileName == NULL) {
+			starttime = gettime();
+			for(i=optIndex+1; i<argc; i++) {
+				if(anyMatch(start, argv[i]))
+					printf("%d: %s\n", i-(optIndex), argv[i]);
+			}
+			endtime = gettime();
 		}
-		endtime = gettime();
+		else {
+			readFile(fileName, &lines, &lineIndex); 	
+
+			starttime = gettime(); 
+			for (i = 0; i < lineIndex; i++) { 
+				if (anyMatch(start, lines[i])) 
+					//TODO need to put this statement out side loop body
+					printf("%s", lines[i]);
+			}
+			endtime = gettime();
+		}
+
 	}
+
+	// parallel matching
+	else {
+		if (fileName == NULL) {
+			printf("Enter a file \n");
+			exit(EXIT_SUCCESS);
+		}
+		
+		State *device_start;
+		copyNFAToDevice(&device_start, start);	
 	
+	}
+
 	if (time) {
 		printf("\nTime taken %f \n\n", (endtime - starttime));
 	}
@@ -485,9 +416,9 @@ main(int argc, char **argv)
 		free(lines[i]);
 	}
 	free(lines);
-	
-//TODO need to free all the states
-	
+
+	//TODO need to free all the states
+
 	free(l1.s);
 	free(l2.s);
 

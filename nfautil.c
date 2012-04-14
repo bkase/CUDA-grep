@@ -1,12 +1,130 @@
 #include "nfautil.h"
 
-
 /*
  * Visualize the NFA in stdout
  */
 int visited[5000];
 int count[5000];
 int visited_index = 0;
+
+/*
+ * Convert infix regexp re to postfix notation.
+ * Insert . as explicit concatenation operator.
+ * Cheesy parser, return static buffer.
+ */
+char*
+re2post(char *re)
+{
+	int nalt, natom;
+	static char buf[8000];
+	char *dst;
+	struct {
+		int nalt;
+		int natom;
+	} paren[100], *p;
+	
+	p = paren;
+	dst = buf;
+	nalt = 0;
+	natom = 0;
+	if(strlen(re) >= sizeof buf/2)
+		return NULL;
+	for(; *re; re++){
+		switch(*re){
+		case '(':
+			if(natom > 1){
+				--natom;
+				*dst++ = '.';
+			}
+			if(p >= paren+100)
+				return NULL;
+			p->nalt = nalt;
+			p->natom = natom;
+			p++;
+			nalt = 0;
+			natom = 0;
+			break;
+		case '|':
+			if(natom == 0)
+				return NULL;
+			while(--natom > 0)
+				*dst++ = '.';
+			nalt++;
+			break;
+		case ')':
+			if(p == paren)
+				return NULL;
+			if(natom == 0)
+				return NULL;
+			while(--natom > 0)
+				*dst++ = '.';
+			for(; nalt > 0; nalt--)
+				*dst++ = '|';
+			--p;
+			nalt = p->nalt;
+			natom = p->natom;
+			natom++;
+			break;
+		case '*':
+		case '+':
+		case '?':
+			if(natom == 0)
+				return NULL;
+			*dst++ = *re;
+			break;
+		default:
+			if(natom > 1){
+				--natom;
+				*dst++ = '.';
+			}
+			*dst++ = *re;
+			natom++;
+			break;
+		}
+	}
+	if(p != paren)
+		return NULL;
+	while(--natom > 0)
+		*dst++ = '.';
+	for(; nalt > 0; nalt--)
+		*dst++ = '|';
+	*dst = 0;
+
+	return buf;
+}
+
+
+void readFile(char *fileName, char ***lines, int *lineIndex) {
+	
+	FILE *fp = fopen(fileName, "r");
+	if (fp == NULL) {
+		printf("Error reading file \n");
+		exit (EXIT_FAILURE);
+	}
+
+	int numLines = 8;
+	// array of lines
+	*lines = (char **)  malloc (sizeof(char *) * numLines); 
+	
+	// single line
+	char *line = (char *) malloc (sizeof(char) * LINE_SIZE);
+	
+	*lineIndex = 0;
+	while (fgets (line, LINE_SIZE, fp) != NULL) {
+		(*lines)[(*lineIndex)] = line;	
+		(*lineIndex) ++;
+
+		line = (char *) malloc(sizeof(char) * LINE_SIZE);	
+
+		if (*lineIndex == numLines-1) {
+			numLines = numLines * 2;
+			(*lines) = (char **) realloc((*lines), sizeof(char *) * numLines);
+		}
+	}
+	(*lines)[(*lineIndex)] = line;	
+	
+	fclose(fp);
+}
 
 
 void usage(const char* progname) {
@@ -102,7 +220,7 @@ void visualize_nfa_help(State * start) {
         data = "Split";
     }
     else {
-        data = malloc(sizeof(char)*10);
+        data = (char *) malloc(sizeof(char)*10);
         sprintf(data, "Char %c", start->c);
     }
 

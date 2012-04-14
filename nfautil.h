@@ -5,6 +5,8 @@
 #include <getopt.h>
 #include <sys/time.h>
 
+#define LINE_SIZE 200
+
 typedef struct State State;
 struct State
 {
@@ -26,9 +28,8 @@ enum
 	Match = 256,
 	Split = 257
 };
-
-
-
+void readFile(char *fileName, char ***lines, int *lineIndex);
+char* re2post(char *re);
 void usage(const char* progname);
 void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fileName, int *time); 
 void visualize_nfa_help(State * start);

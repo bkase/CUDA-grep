@@ -1,10 +1,11 @@
 #Comment for .gitignore
 
+/debug
 /testbench/RESULTS
 *.un~
 .backups/
+pnfa
 nfa
-nfa_debug
 a.out
 re2/obj/
 re2/lib/

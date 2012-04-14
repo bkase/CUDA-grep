@@ -10,8 +10,10 @@ all: nfa nfa_debug
 clean: 
 	rm -rf nfa nfa_debug *.o
 
-nfa: nfa.c nfautil.c 
-	$(NVCC) $(CFLAGS) nfa.c nfautil.c -o nfa
+nfa: pnfa.cu nfautil.c nfa.c
+	$(NVCC) $(CFLAGS) pnfa.cu nfa.c nfautil.c -o nfa
 
-nfa_debug: nfa.c nfautil.c
-	$(NVCC) $(CFLAGS_DEBUG) nfa.c nfautil.c -o nfa_debug
+nfa_debug: pnfa.cu nfa.c nfautil.c
+	$(NVCC) $(CFLAGS_DEBUG) pnfa.cu nfa.c nfautil.c -o nfa_debug
+
+
