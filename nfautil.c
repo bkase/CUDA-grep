@@ -131,7 +131,7 @@ void usage(const char* progname) {
     printf("Usage: %s [options] [pattern] [text]*\n", progname);
     printf("Program Options:\n");
     printf("  -v	Visualize the NFA then exit\n");
-    printf("  -p	View postfix expression\n"); 
+    printf("  -p	View postfix expression then exit\n"); 
 	printf("  -t	Print timing data\n");
     printf("  -f <FILE> --file Input file\n");	
 	printf("  -? This message\n");

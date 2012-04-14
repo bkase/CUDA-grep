@@ -350,14 +350,15 @@ main(int argc, char **argv)
 		return 1;
 	}
 
+    if (postfix == 1) {
+		printf("\nPostfix buffer: %s\n", post);
+        exit(0);
+	}
+
 	start = post2nfa(post);
 	if(start == NULL){
 		fprintf(stderr, "error in post2nfa %s\n", post);
 		return 1;
-	}
-
-	if (postfix == 1) {
-		printf("\nPostfix buffer: %s\n", start);
 	}
 
 	if (visualize == 1) { 
