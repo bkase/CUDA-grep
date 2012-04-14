@@ -130,7 +130,7 @@ void readFile(char *fileName, char ***lines, int *lineIndex) {
 void usage(const char* progname) {
     printf("Usage: %s [options] [pattern] [text]*\n", progname);
     printf("Program Options:\n");
-    printf("  -v	Visualize the NFA\n");
+    printf("  -v	Visualize the NFA then exit\n");
     printf("  -p	View postfix expression\n"); 
 	printf("  -t	Print timing data\n");
     printf("  -f <FILE> --file Input file\n");	
