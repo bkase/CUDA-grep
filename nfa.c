@@ -298,27 +298,25 @@ copyStateToDevice(State *device_start, State *out, int pos) {
 		State *device_out;
 		// allocate memory for out state & copy it over
 		cudaMalloc((void **) &device_out, sizeof (State));	
-		cudaMemcpy(device_out, out, sizeof (State), cudaMemcpyHostToDevice);
+		cudaMemcpy(&device_out, &out, sizeof (State), cudaMemcpyHostToDevice);
 		// make start point to out
 		if (pos == 0) 
-			cudaMemcpy(device_start->out, &device_out, sizeof (State), cudaMemcpyHostToDevice);
+			cudaMemcpy(&(device_start->out), &device_out, sizeof (State), cudaMemcpyHostToDevice);
 		else 
-			cudaMemcpy(device_start->out1, &device_out, sizeof (State), cudaMemcpyHostToDevice);
+			cudaMemcpy(&(device_start->out1), &device_out, sizeof (State), cudaMemcpyHostToDevice);
 	
 		copyStateToDevice(device_out, out->out, 0);
 		copyStateToDevice(device_out, out->out1, 1);
 	}	
-	else {
-		cudaMemcpy(&(device_start->out), NULL, sizeof (State), cudaMemcpyHostToDevice);
-	}
+
 }
 
 void 
 copyNFAToDevice(State **device_start, State *start) {
 	cudaMalloc((void **) device_start, sizeof (State));
-	cudaMemcpy(*device_start, start, sizeof (State), cudaMemcpyHostToDevice);
+	cudaMemcpy(device_start, &start, sizeof (State), cudaMemcpyHostToDevice);
 	copyStateToDevice(*device_start, start->out, 0);
-	copyStateToDevice(*device_start, start->out1, 0);
+	copyStateToDevice(*device_start, start->out1, 1);
 }
 
 void 
@@ -425,6 +423,11 @@ main(int argc, char **argv)
 		char **device_lines;
 		copyNFAToDevice(&device_start, start);	
 		copyStringsToDevice(lines, lineIndex, &device_lines);
+	
+		//TODO kernel call
+		//parallelMatch<<<1,1>>>(device_start, device_lines, lineIndex);
+		
+		//TODO free up GPU memory	
 	}
 
 	if (time) {
