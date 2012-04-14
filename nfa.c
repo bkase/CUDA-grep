@@ -135,6 +135,10 @@ post2nfa(char *postfix)
 	stackp = stack;
 	for(p=postfix; *p; p++){
 		switch(*p){
+            case '.':
+				s = state(Any, NULL, NULL);
+				push(frag(s, list1(&s->out)));
+				break;
 			default:
 				s = state(*p, NULL, NULL);
 				push(frag(s, list1(&s->out)));
@@ -247,7 +251,7 @@ step(List *clist, int c, List *nlist)
 	nlist->n = 0;
 	for(i=0; i<clist->n; i++){
 		s = clist->s[i];
-		if(s->c == c)
+		if(s->c == c || s->c == Any)
 			addstate(nlist, s->out);
 	}
 }
