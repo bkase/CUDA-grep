@@ -301,15 +301,15 @@ copyStateToDevice(State *device_start, State *out, int pos) {
 		cudaMemcpy(device_out, out, sizeof (State), cudaMemcpyHostToDevice);
 		// make start point to out
 		if (pos == 0) 
-			cudaMemcpy(device_start->out, device_out, sizeof (State), cudaMemcpyHostToDevice);
+			cudaMemcpy(device_start->out, &device_out, sizeof (State), cudaMemcpyHostToDevice);
 		else 
-			cudaMemcpy(device_start->out1, device_out, sizeof (State), cudaMemcpyHostToDevice);
+			cudaMemcpy(device_start->out1, &device_out, sizeof (State), cudaMemcpyHostToDevice);
 	
 		copyStateToDevice(device_out, out->out, 0);
 		copyStateToDevice(device_out, out->out1, 1);
 	}	
 	else {
-		cudaMemcpy(device_start->out, NULL, sizeof (State), cudaMemcpyHostToDevice);
+		cudaMemcpy(&(device_start->out), NULL, sizeof (State), cudaMemcpyHostToDevice);
 	}
 }
 
@@ -319,6 +319,22 @@ copyNFAToDevice(State **device_start, State *start) {
 	cudaMemcpy(*device_start, start, sizeof (State), cudaMemcpyHostToDevice);
 	copyStateToDevice(*device_start, start->out, 0);
 	copyStateToDevice(*device_start, start->out1, 0);
+}
+
+void 
+copyStringsToDevice(char **lines, int lineIndex, char ***device_lines) {
+
+	// allocate memory for pointers
+	cudaMalloc((void **) device_lines, sizeof (char *) * lineIndex);
+	// copy each line over
+	for (int i = 0; i < lineIndex; i++) {
+		char *line; 
+		cudaMalloc((void **) &line, sizeof (char) * LINE_SIZE);
+		cudaMemcpy(line, lines[i], sizeof (char) * LINE_SIZE, cudaMemcpyHostToDevice);	
+		cudaMemcpy(&((*device_lines)[i]), &line, sizeof (char *), cudaMemcpyDeviceToDevice); 	
+	}
+
+
 }
 
 int
@@ -403,10 +419,13 @@ main(int argc, char **argv)
 			printf("Enter a file \n");
 			exit(EXIT_SUCCESS);
 		}
-		
-		State *device_start;
-		copyNFAToDevice(&device_start, start);	
 	
+		readFile(fileName, &lines, &lineIndex); 	
+
+		State *device_start;
+		char **device_lines;
+		copyNFAToDevice(&device_start, start);	
+		copyStringsToDevice(lines, lineIndex, &device_lines);
 	}
 
 	if (time) {
