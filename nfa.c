@@ -407,6 +407,10 @@ main(int argc, char **argv)
 					printf("%s", lines[i]);
 			}
 			endtime = gettime();
+		
+			for (i = 0; i <= lineIndex; i++) 
+			free(lines[i]);
+			free(lines);
 		}
 
 	}
@@ -429,17 +433,17 @@ main(int argc, char **argv)
 		//parallelMatch<<<1,1>>>(device_start, device_lines, lineIndex);
 		
 		//TODO free up GPU memory	
+	
+		for (i = 0; i <= lineIndex; i++) 
+		free(lines[i]);
+		free(lines);
+
 	}
 
 	if (time) {
 		printf("\nTime taken %f \n\n", (endtime - starttime));
 	}
 	// free up memory
-	for (i = 0; i <= lineIndex; i++) {
-		free(lines[i]);
-	}
-	free(lines);
-
 	//TODO need to free all the states
 
 	free(l1.s);
