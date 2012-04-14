@@ -4,27 +4,35 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-DEBUG	nfa.c	19;"	d	file:
+DEBUG	nfa.c	18;"	d	file:
 Frag	nfa.c	/^struct Frag$/;"	s	file:
 Frag	nfa.c	/^typedef struct Frag Frag;$/;"	t	typeref:struct:Frag	file:
-LOG	nfa.c	21;"	d	file:
-LOG	nfa.c	25;"	d	file:
+LINE_SIZE	nfautil.h	8;"	d
+LOG	nfa.c	20;"	d	file:
+LOG	nfa.c	24;"	d	file:
 List	nfa.c	/^struct List$/;"	s	file:
 List	nfa.c	/^typedef struct List List;$/;"	t	typeref:struct:List	file:
-Match	nfa.c	/^	Match = 256,$/;"	e	enum:__anon1	file:
+Match	nfautil.h	/^	Match = 256,$/;"	e	enum:__anon1
 Ptrlist	nfa.c	/^typedef union Ptrlist Ptrlist;$/;"	t	typeref:union:Ptrlist	file:
 Ptrlist	nfa.c	/^union Ptrlist$/;"	u	file:
-Split	nfa.c	/^	Split = 257$/;"	e	enum:__anon1	file:
-State	nfa.c	/^struct State$/;"	s	file:
-State	nfa.c	/^typedef struct State State;$/;"	t	typeref:struct:State	file:
+Split	nfautil.h	/^	Split = 257$/;"	e	enum:__anon1
+State	nfautil.h	/^struct State$/;"	s
+State	nfautil.h	/^typedef struct State State;$/;"	t	typeref:struct:State
 addstate	nfa.c	/^addstate(List *l, State *s)$/;"	f
+anyMatch	nfa.c	/^anyMatch(State *start, char *s) { $/;"	f
 append	nfa.c	/^append(Ptrlist *l1, Ptrlist *l2)$/;"	f
-c	nfa.c	/^	int c;$/;"	m	struct:State	file:
+c	nfautil.h	/^	int c;$/;"	m	struct:State
+copyNFAToDevice	nfa.c	/^copyNFAToDevice(State **device_start, State *start) {$/;"	f
+copyStateToDevice	nfa.c	/^copyStateToDevice(State *device_start, State *out, int pos) {$/;"	f
+count	nfautil.c	/^int count[5000];$/;"	v
 frag	nfa.c	/^frag(State *start, Ptrlist *out)$/;"	f
+gettime	nfautil.c	/^double gettime()$/;"	f
+hasSeen	nfautil.c	/^int hasSeen(State * start, int * index) {$/;"	f
+id	nfautil.h	/^    int id;$/;"	m	struct:State
 ismatch	nfa.c	/^ismatch(List *l)$/;"	f
 l1	nfa.c	/^List l1, l2;$/;"	v
 l2	nfa.c	/^List l1, l2;$/;"	v
-lastlist	nfa.c	/^	int lastlist;$/;"	m	struct:State	file:
+lastlist	nfautil.h	/^	int lastlist;$/;"	m	struct:State
 list1	nfa.c	/^list1(State **outp)$/;"	f
 listid	nfa.c	/^static int listid;$/;"	v	file:
 main	nfa.c	/^main(int argc, char **argv)$/;"	f
@@ -34,19 +42,25 @@ n	nfa.c	/^	int n;$/;"	m	struct:List	file:
 next	nfa.c	/^	Ptrlist *next;$/;"	m	union:Ptrlist	file:
 nstate	nfa.c	/^int nstate;$/;"	v
 out	nfa.c	/^	Ptrlist *out;$/;"	m	struct:Frag	file:
-out	nfa.c	/^	State *out;$/;"	m	struct:State	file:
-out1	nfa.c	/^	State *out1;$/;"	m	struct:State	file:
+out	nfautil.h	/^	State *out;$/;"	m	struct:State
+out1	nfautil.h	/^	State *out1;$/;"	m	struct:State
+parseCmdLine	nfautil.c	/^void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fileName, int *time) {$/;"	f
 patch	nfa.c	/^patch(Ptrlist *l, State *s)$/;"	f
-pop	nfa.c	245;"	d	file:
-pop	nfa.c	293;"	d	file:
+pop	nfa.c	133;"	d	file:
+pop	nfa.c	181;"	d	file:
 post2nfa	nfa.c	/^post2nfa(char *postfix)$/;"	f
-push	nfa.c	244;"	d	file:
-push	nfa.c	294;"	d	file:
-re2post	nfa.c	/^re2post(char *re)$/;"	f
+push	nfa.c	132;"	d	file:
+push	nfa.c	182;"	d	file:
+re2post	nfautil.c	/^re2post(char *re)$/;"	f
+readFile	nfautil.c	/^void readFile(char *fileName, char ***lines, int *lineIndex) {$/;"	f
 s	nfa.c	/^	State **s;$/;"	m	struct:List	file:
 s	nfa.c	/^	State *s;$/;"	m	union:Ptrlist	file:
 start	nfa.c	/^	State *start;$/;"	m	struct:Frag	file:
 startlist	nfa.c	/^startlist(State *start, List *l)$/;"	f
 state	nfa.c	/^state(int c, State *out, State *out1)$/;"	f
 step	nfa.c	/^step(List *clist, int c, List *nlist)$/;"	f
-visualize_nfa	nfa.c	/^void visualize_nfa(State * start) {$/;"	f
+usage	nfautil.c	/^void usage(const char* progname) {$/;"	f
+visited	nfautil.c	/^int visited[5000];$/;"	v
+visited_index	nfautil.c	/^int visited_index = 0;$/;"	v
+visualize_nfa	nfautil.c	/^void visualize_nfa(State * start) {$/;"	f
+visualize_nfa_help	nfautil.c	/^void visualize_nfa_help(State * start) {$/;"	f
