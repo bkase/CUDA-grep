@@ -21,12 +21,14 @@ struct State
  * Represents an NFA state plus zero or one or two arrows exiting.
  * if c == Match, no arrows out; matching state.
  * If c == Split, unlabeled arrows to out and out1 (if != NULL).
+ * If c == Any, unlabeled arrows to out (if != NULL).
  * If c < 256, labeled arrow with character c to out.
  */
 enum
 {
 	Match = 256,
-	Split = 257
+	Split = 257,
+    Any   = 258
 };
 void readFile(char *fileName, char ***lines, int *lineIndex);
 char* re2post(char *re);

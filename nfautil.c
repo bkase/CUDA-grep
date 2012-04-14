@@ -219,6 +219,9 @@ void visualize_nfa_help(State * start) {
     else if (start->c == Split) {
         data = "Split";
     }
+    else if (start->c == Any) {
+        data = "Any";
+    }
     else {
         data = (char *) malloc(sizeof(char)*10);
         sprintf(data, "Char %c", start->c);
