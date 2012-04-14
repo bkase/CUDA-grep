@@ -335,12 +335,92 @@ copyStringsToDevice(char **lines, int lineIndex, char ***device_lines) {
 
 }
 
+typedef struct {
+    int i;
+    int size;
+    char * re;
+} SimpleReBuilder;
+
+/* constructor for SimpleReBuilder */
+void simpleReBuilder(SimpleReBuilder * builder, int len) {
+    builder->re = (char *)malloc(len+1);
+}
+
+void _simpleReBuilder(SimpleReBuilder * builder) {
+    free(builder->re);
+    /* the rest is on the stack */
+}
+
+void regex_error(int i) {
+    fprintf(stderr, "Improper regex at character %d", i);
+    exit(1);
+}
+
+void handle_escape(SimpleReBuilder * builder, char * complexRe, int len, int * bi, int * ci) {
+
+    int i = *ci;
+    int j = *bi;
+
+    if (i+1 > len)
+        regex_error(i);
+
+    i++; //go to escaped character and ignore '/'
+    switch(complexRe[i]) {
+        
+
+        case 'd':
+            printf("digits here\n");
+            break;
+
+        case 'w':
+            printf("word character here\n");
+            break;
+
+        /* ... see www.cs.tut.fi/~jkorpela/perl/regexp.html */
+        
+        // default is just ignoring the backslash and taking the 
+        // LITERAL character after no matter what
+        default:
+            builder->re[j++] = complexRe[i++];
+            break;
+    }
+
+    *ci = i;
+    *bi = j;
+}
+
+SimpleReBuilder * simplifyRe(char * complexRe, SimpleReBuilder * builder) {
+
+    int len = strlen(complexRe);
+    simpleReBuilder(builder, len);
+
+    int i,j;
+    for (i = 0, j = 0; i < len; i++, j++) {
+        switch(complexRe[i]) {
+            
+            case '\\':
+                handle_escape(builder, complexRe, len, &j, &i);
+                break;
+
+            default:
+                builder->re[j] = complexRe[i];
+        }
+
+    }
+    builder->re[j] = '\0';
+    printf("Here is the re: %s\n", builder->re);
+
+    return builder;
+
+}
+
 int
 main(int argc, char **argv)
 {	
 	int visualize, postfix, i, time, parallel = 0;
 	char *fileName = NULL;
 	char *post;
+    SimpleReBuilder builder;
 	State *start;
 	double starttime, endtime; 
 	char **lines;
@@ -358,7 +438,13 @@ main(int argc, char **argv)
 		exit(EXIT_SUCCESS);
 	}
 
-	post = re2post(argv[optIndex]);
+    simplifyRe(argv[optIndex], &builder);
+
+	post = re2post(builder.re);
+
+    /* destruct the simpleRe */
+    _simpleReBuilder(&builder);
+
 	if(post == NULL){
 		fprintf(stderr, "bad regexp %s\n", argv[optIndex]);
 		return 1;
