@@ -377,8 +377,8 @@ main(int argc, char **argv)
 	}
 
 	if (visualize == 1) { 
-		printf("\nVisualization Data\n");
 		visualize_nfa(start);
+        exit(0);
 	}
 
 	l1.s = (State **) malloc(nstate*sizeof l1.s[0]);
