@@ -1,7 +1,9 @@
 #!/bin/bash
 
 teststrings=("ROMEO" "JULIET" "ROMEO|JULIET" "R+" "R*" "R" "R+R*" "R*R+" "RR+"
-"R+|J+" "(R|J)ULIET");
+"R+|J+" "(R|J)ULIET" 
+#Test for the . wildcard
+"But .hen");
 
 date >> RESULTS;
 echo "" >> RESULTS;
