@@ -9,7 +9,7 @@ int visited_index = 0;
 
 /*
  * Convert infix regexp re to postfix notation.
- * Insert . as explicit concatenation operator.
+ * Insert ESC (or 0x1b) as explicit concatenation operator.
  * Cheesy parser, return static buffer.
  */
 char*
@@ -34,7 +34,7 @@ re2post(char *re)
 		case '(':
 			if(natom > 1){
 				--natom;
-				*dst++ = '.';
+				*dst++ = 0x1b;
 			}
 			if(p >= paren+100)
 				return NULL;
@@ -48,7 +48,7 @@ re2post(char *re)
 			if(natom == 0)
 				return NULL;
 			while(--natom > 0)
-				*dst++ = '.';
+				*dst++ = 0x1b;
 			nalt++;
 			break;
 		case ')':
@@ -57,7 +57,7 @@ re2post(char *re)
 			if(natom == 0)
 				return NULL;
 			while(--natom > 0)
-				*dst++ = '.';
+				*dst++ = 0x1b;
 			for(; nalt > 0; nalt--)
 				*dst++ = '|';
 			--p;
@@ -75,7 +75,7 @@ re2post(char *re)
 		default:
 			if(natom > 1){
 				--natom;
-				*dst++ = '.';
+				*dst++ = 0x1b;
 			}
 			*dst++ = *re;
 			natom++;
@@ -85,7 +85,7 @@ re2post(char *re)
 	if(p != paren)
 		return NULL;
 	while(--natom > 0)
-		*dst++ = '.';
+		*dst++ = 0x1b;
 	for(; nalt > 0; nalt--)
 		*dst++ = '|';
 	*dst = 0;

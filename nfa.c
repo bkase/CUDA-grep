@@ -139,7 +139,7 @@ post2nfa(char *postfix)
 				s = state(*p, NULL, NULL);
 				push(frag(s, list1(&s->out)));
 				break;
-			case '.':	/* catenate */
+			case 0x1b:	/* catenate */
 				e2 = pop();
 				e1 = pop();
 				patch(e1.out, e2.start);
