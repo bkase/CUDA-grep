@@ -351,6 +351,7 @@ typedef struct {
 /* constructor for SimpleReBuilder */
 void simpleReBuilder(SimpleReBuilder ** builder, int len) {
     (*builder)->re = (char *)malloc(len+3);
+    (*builder)->size = len+3;
 }
 
 void _simpleReBuilder(SimpleReBuilder * builder) {
@@ -402,6 +403,34 @@ void handle_escape(SimpleReBuilder ** builder, char * complexRe, int len, int * 
     *bi = j;
 }
 
+void putRange(SimpleReBuilder ** builder, char start, char end, int * bi) {
+    
+    int i = *bi;
+    int amount = ((end - start + 1)*2)+1;
+    (*builder)->size += amount;
+    (*builder)->re = (char *)realloc((*builder)->re, (*builder)->size);
+
+    (*builder)->re[i++] = 0x05;
+    (*builder)->re[i++] = start;
+    for (char k = start+1; k <= end; k++) {
+        (*builder)->re[i++] = 0x04;
+        (*builder)->re[i++] = k;
+    }
+    (*builder)->re[i++] = 0x06;
+
+    *bi = i;
+}
+
+void handle_range(SimpleReBuilder ** builder, char * complexRe, int len, int * bi, int * ci) {
+    
+    int i = *ci;
+    if (complexRe[i+4] != ']' || complexRe[i+2] != '-' || complexRe[i+1] > complexRe[i+3] || complexRe[i+1] <= 0x20) {
+        fprintf(stderr, "Invalid range at character %d\n", i);
+        exit(1);
+    }
+
+    putRange(builder, complexRe[i+1], complexRe[i+3], bi);
+}
 
 SimpleReBuilder * simplifyRe(char * complexRe, SimpleReBuilder * builder) {
 
@@ -442,6 +471,10 @@ SimpleReBuilder * simplifyRe(char * complexRe, SimpleReBuilder * builder) {
 
             case ')':
                 builder->re[j] = 0x06; //0x06 is )
+                break;
+
+            case '[':
+                handle_range(&builder, complexRe, len, &j, &i);
                 break;
 
             default:
