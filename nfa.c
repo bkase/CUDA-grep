@@ -39,6 +39,7 @@ state(int c, State *out, State *out1)
 	s->c = c;
 	s->out = out;
 	s->out1 = out1;
+	s->free = 0;
 	return s;
 }
 
@@ -224,6 +225,9 @@ ismatch(List *l)
 	void
 addstate(List *l, State *s)
 {
+	// lastlist check is present to ensure that if
+	// multiple states point to this state, then only
+	// one instance of the state is added to the list
 	if(s == NULL || s->lastlist == listid)
 		return;
 	s->lastlist = listid;
@@ -341,7 +345,8 @@ copyStringsToDevice(char **lines, int lineIndex, char ***device_lines) {
 
 // free all states except Match which is statically allocated
 void freeNFAStates(State *s) {
-	if (s != NULL && s->c != Match) {
+	if (s != NULL && s->c != Match && s->free != 1) {	
+		s->free = 1;
 		freeNFAStates(s->out);
 		freeNFAStates(s->out1);
 		free(s);

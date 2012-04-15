@@ -15,6 +15,7 @@ struct State
 	State *out;
 	State *out1;
 	int lastlist;
+	unsigned char free;
 };
 
 /*
