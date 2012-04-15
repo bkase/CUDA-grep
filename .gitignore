@@ -11,5 +11,6 @@ a.out
 srv/
 re2/obj/
 re2/lib/
+RESULTS
 *.o
 node_modules/
