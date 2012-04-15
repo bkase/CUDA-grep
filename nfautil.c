@@ -156,7 +156,7 @@ void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fi
 	*visualize = 0;
 	*postfix = 0;
 	*time = 0;
-    while ((opt = getopt_long_only(argc, argv, "t:v:p:f:?", long_options, NULL)) != EOF) {
+    while ((opt = getopt_long_only(argc, argv, "tvpf:?", long_options, NULL)) != EOF) {
 
         switch (opt) {
         case 'v': {
