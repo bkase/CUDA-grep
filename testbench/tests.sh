@@ -3,7 +3,8 @@
 teststrings=("ROMEO" "JULIET" "ROMEO|JULIET" "R+" "R*" "R" "R+R*" "R*R+" "RR+" "RR*" 
 "R+|J+" "(R|J)ULIET" 
 #Test for the . wildcard
-"But .hen" "R..EO" "R..EO|...IET" "R..*");
+"But .hen" "R..EO" "R..EO|...IET" "R..*"
+"\?" "\|" "\+" "\*" "\.");
 
 date >> RESULTS;
 echo "" >> RESULTS;
