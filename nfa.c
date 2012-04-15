@@ -135,7 +135,7 @@ post2nfa(char *postfix)
 	stackp = stack;
 	for(p=postfix; *p; p++){
 		switch(*p){
-            case '.':
+            case 0x15: /* any (.) */
 				s = state(Any, NULL, NULL);
 				push(frag(s, list1(&s->out)));
 				break;
@@ -149,24 +149,24 @@ post2nfa(char *postfix)
 				patch(e1.out, e2.start);
 				push(frag(e1.start, e2.out));
 				break;
-			case '|':	/* alternate */
+			case 0x04:	/* alternate (|)*/
 				e2 = pop();
 				e1 = pop();
 				s = state(Split, e1.start, e2.start);
 				push(frag(s, append(e1.out, e2.out)));
 				break;
-			case '?':	/* zero or one */
+			case 0x02:	/* zero or one (?)*/
 				e = pop();
 				s = state(Split, e.start, NULL);
 				push(frag(s, append(e.out, list1(&s->out1))));
 				break;
-			case '*':	/* zero or more */
+			case 0x03:	/* zero or more (*)*/
 				e = pop();
 				s = state(Split, e.start, NULL);
 				patch(e.out, s);
 				push(frag(s, list1(&s->out1)));
 				break;
-			case '+':	/* one or more */
+			case 0x01:	/* one or more (+)*/
 				e = pop();
 				s = state(Split, e.start, NULL);
 				patch(e.out, s);
@@ -336,7 +336,6 @@ copyStringsToDevice(char **lines, int lineIndex, char ***device_lines) {
 		cudaMemcpy(&((*device_lines)[i]), &line, sizeof (char *), cudaMemcpyDeviceToDevice); 	
 	}
 
-
 }
 
 typedef struct {
@@ -346,8 +345,8 @@ typedef struct {
 } SimpleReBuilder;
 
 /* constructor for SimpleReBuilder */
-void simpleReBuilder(SimpleReBuilder * builder, int len) {
-    builder->re = (char *)malloc(len+1);
+void simpleReBuilder(SimpleReBuilder ** builder, int len) {
+    (*builder)->re = (char *)malloc(len+3);
 }
 
 void _simpleReBuilder(SimpleReBuilder * builder) {
@@ -360,7 +359,14 @@ void regex_error(int i) {
     exit(1);
 }
 
-void handle_escape(SimpleReBuilder * builder, char * complexRe, int len, int * bi, int * ci) {
+char * stringify(char * nonull, int j) {
+    char * proper = (char*)malloc(j+2);   
+    memcpy(proper, nonull, j);
+    proper[j+1] = '\0';
+    return proper;
+}
+
+void handle_escape(SimpleReBuilder ** builder, char * complexRe, int len, int * bi, int * ci) {
 
     int i = *ci;
     int j = *bi;
@@ -371,7 +377,6 @@ void handle_escape(SimpleReBuilder * builder, char * complexRe, int len, int * b
     i++; //go to escaped character and ignore '/'
     switch(complexRe[i]) {
         
-
         case 'd':
             printf("digits here\n");
             break;
@@ -385,7 +390,7 @@ void handle_escape(SimpleReBuilder * builder, char * complexRe, int len, int * b
         // default is just ignoring the backslash and taking the 
         // LITERAL character after no matter what
         default:
-            builder->re[j++] = complexRe[i++];
+            (*builder)->re[j++] = complexRe[i++];
             break;
     }
 
@@ -393,26 +398,55 @@ void handle_escape(SimpleReBuilder * builder, char * complexRe, int len, int * b
     *bi = j;
 }
 
+
 SimpleReBuilder * simplifyRe(char * complexRe, SimpleReBuilder * builder) {
 
     int len = strlen(complexRe);
-    simpleReBuilder(builder, len);
+    simpleReBuilder(&builder, len);
 
     int i,j;
     for (i = 0, j = 0; i < len; i++, j++) {
         switch(complexRe[i]) {
             
             case '\\':
-                handle_escape(builder, complexRe, len, &j, &i);
+                handle_escape(&builder, complexRe, len, &j, &i);
+                break;
+
+            case '.':
+                builder->re[j] = 0x15; //nak is ANY
+                break;
+
+            case '+':
+                builder->re[j] = 0x01; //0x01 is +
+                break;
+
+            case '?':
+                builder->re[j] = 0x02; //0x02 is ?
+                break;
+
+            case '*':
+                builder->re[j] = 0x03; //0x03 is *
+                break;
+
+            case '|':
+                builder->re[j] = 0x04; //0x04 is |
+                break;
+
+            case '(':
+                builder->re[j] = 0x05; //0x05 is (
+                break;
+
+            case ')':
+                builder->re[j] = 0x06; //0x06 is )
                 break;
 
             default:
                 builder->re[j] = complexRe[i];
+                break;
         }
 
     }
     builder->re[j] = '\0';
-    printf("Here is the re: %s\n", builder->re);
 
     return builder;
 

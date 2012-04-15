@@ -31,7 +31,7 @@ re2post(char *re)
 		return NULL;
 	for(; *re; re++){
 		switch(*re){
-		case '(':
+		case 0x05: // (
 			if(natom > 1){
 				--natom;
 				*dst++ = 0x1b;
@@ -44,14 +44,14 @@ re2post(char *re)
 			nalt = 0;
 			natom = 0;
 			break;
-		case '|':
+		case 0x04: // |
 			if(natom == 0)
 				return NULL;
 			while(--natom > 0)
 				*dst++ = 0x1b;
 			nalt++;
 			break;
-		case ')':
+		case 0x06: // )
 			if(p == paren)
 				return NULL;
 			if(natom == 0)
@@ -59,15 +59,15 @@ re2post(char *re)
 			while(--natom > 0)
 				*dst++ = 0x1b;
 			for(; nalt > 0; nalt--)
-				*dst++ = '|';
+				*dst++ = 0x04;
 			--p;
 			nalt = p->nalt;
 			natom = p->natom;
 			natom++;
 			break;
-		case '*':
-		case '+':
-		case '?':
+		case 0x03: // *
+		case 0x01: // +
+		case 0x02: // ?
 			if(natom == 0)
 				return NULL;
 			*dst++ = *re;
@@ -87,7 +87,7 @@ re2post(char *re)
 	while(--natom > 0)
 		*dst++ = 0x1b;
 	for(; nalt > 0; nalt--)
-		*dst++ = '|';
+		*dst++ = 0x04;
 	*dst = 0;
 
 	return buf;
