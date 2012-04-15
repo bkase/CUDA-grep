@@ -2,7 +2,6 @@
 
 /debug
 /testbench/RESULTS
-/testbench/testcases
 *.un~
 .backups/
 pnfa
