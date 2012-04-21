@@ -132,12 +132,13 @@ void usage(const char* progname) {
     printf("Program Options:\n");
     printf("  -v	Visualize the NFA then exit\n");
     printf("  -p	View postfix expression then exit\n"); 
+	printf("  -s	View simplified expression then exit\n");
 	printf("  -t	Print timing data\n");
     printf("  -f <FILE> --file Input file\n");	
 	printf("  -? This message\n");
 }
 
-void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fileName, int *time) {
+void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fileName, int *time, int *simplified) {
 	if (argc < 3) {
 		usage(argv[0]);
 		exit(EXIT_SUCCESS);
@@ -147,6 +148,7 @@ void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fi
 	static struct option long_options[] = {
         {"help",     no_argument, 0,  '?'},
         {"postfix",     no_argument, 0,  'p'}, 
+        {"simplified",     no_argument, 0,  's'}, 
 		{"visualize",    no_argument, 0,  'v'},
 		{"file",     required_argument, 0,  'f'},
 		{"time",     no_argument, 0,  't'},
@@ -156,28 +158,33 @@ void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fi
 	*visualize = 0;
 	*postfix = 0;
 	*time = 0;
-    while ((opt = getopt_long_only(argc, argv, "tvpf:?", long_options, NULL)) != EOF) {
+    *simplified = 0;
+    while ((opt = getopt_long_only(argc, argv, "tvpsf:?", long_options, NULL)) != EOF) {
 
         switch (opt) {
-        case 'v': {
-			*visualize = 1;
-			break;
-		}
-		case 'p': {
-			*postfix = 1;	
-			break;
-		}
-		case 'f': {
-			*fileName = optarg; 
-			break;
-		}
-		case 't': {
-			*time = 1;
-			break;
-		}
-		default: 
-		 	usage(argv[0]);
-			exit(EXIT_SUCCESS);
+            case 'v':
+                *visualize = 1;
+                break;
+
+            case 'p':
+                *postfix = 1;	
+                break;
+
+            case 'f':
+                *fileName = optarg; 
+                break;
+
+            case 't':
+                *time = 1;
+                break;
+
+            case 's':
+                *simplified = 1;
+                break;
+                
+            default: 
+                usage(argv[0]);
+                exit(EXIT_SUCCESS);
 		} 
 	}	
 
