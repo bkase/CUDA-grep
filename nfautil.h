@@ -7,6 +7,15 @@
 
 #define LINE_SIZE 200
 
+#define ANY 0x15
+#define CONCATENATE 0x1b
+#define ALTERNATE 0x04
+#define QUESTION 0x02
+#define STAR 0x03
+#define PLUS 0x01
+#define PAREN_OPEN 0x05
+#define PAREN_CLOSE 0x06
+
 typedef struct State State;
 struct State
 {

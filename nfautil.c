@@ -31,10 +31,10 @@ re2post(char *re)
 		return NULL;
 	for(; *re; re++){
 		switch(*re){
-		case 0x05: // (
+		case PAREN_OPEN: // (
 			if(natom > 1){
 				--natom;
-				*dst++ = 0x1b;
+				*dst++ = CONCATENATE;
 			}
 			if(p >= paren+100)
 				return NULL;
@@ -44,30 +44,30 @@ re2post(char *re)
 			nalt = 0;
 			natom = 0;
 			break;
-		case 0x04: // |
+		case ALTERNATE: // |
 			if(natom == 0)
 				return NULL;
 			while(--natom > 0)
-				*dst++ = 0x1b;
+				*dst++ = CONCATENATE;
 			nalt++;
 			break;
-		case 0x06: // )
+		case PAREN_CLOSE: // )
 			if(p == paren)
 				return NULL;
 			if(natom == 0)
 				return NULL;
 			while(--natom > 0)
-				*dst++ = 0x1b;
+				*dst++ = CONCATENATE;
 			for(; nalt > 0; nalt--)
-				*dst++ = 0x04;
+				*dst++ = ALTERNATE;
 			--p;
 			nalt = p->nalt;
 			natom = p->natom;
 			natom++;
 			break;
-		case 0x03: // *
-		case 0x01: // +
-		case 0x02: // ?
+		case STAR: // *
+		case PLUS: // +
+		case QUESTION: // ?
 			if(natom == 0)
 				return NULL;
 			*dst++ = *re;
@@ -75,7 +75,7 @@ re2post(char *re)
 		default:
 			if(natom > 1){
 				--natom;
-				*dst++ = 0x1b;
+				*dst++ = CONCATENATE;
 			}
 			*dst++ = *re;
 			natom++;
@@ -85,9 +85,9 @@ re2post(char *re)
 	if(p != paren)
 		return NULL;
 	while(--natom > 0)
-		*dst++ = 0x1b;
+		*dst++ = CONCATENATE;
 	for(; nalt > 0; nalt--)
-		*dst++ = 0x04;
+		*dst++ = ALTERNATE;
 	*dst = 0;
 
 	return buf;

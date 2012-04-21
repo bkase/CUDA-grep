@@ -136,7 +136,7 @@ post2nfa(char *postfix)
 	stackp = stack;
 	for(p=postfix; *p; p++){
 		switch(*p){
-            case 0x15: /* any (.) */
+            case ANY: /* any (.) */
 				s = state(Any, NULL, NULL);
 				push(frag(s, list1(&s->out)));
 				break;
@@ -144,30 +144,30 @@ post2nfa(char *postfix)
 				s = state(*p, NULL, NULL);
 				push(frag(s, list1(&s->out)));
 				break;
-			case 0x1b:	/* catenate */
+			case CONCATENATE:	/* catenate */
 				e2 = pop();
 				e1 = pop();
 				patch(e1.out, e2.start);
 				push(frag(e1.start, e2.out));
 				break;
-			case 0x04:	/* alternate (|)*/
+			case ALTERNATE:	/* alternate (|)*/
 				e2 = pop();
 				e1 = pop();
 				s = state(Split, e1.start, e2.start);
 				push(frag(s, append(e1.out, e2.out)));
 				break;
-			case 0x02:	/* zero or one (?)*/
+			case QUESTION:	/* zero or one (?)*/
 				e = pop();
 				s = state(Split, e.start, NULL);
 				push(frag(s, append(e.out, list1(&s->out1))));
 				break;
-			case 0x03:	/* zero or more (*)*/
+			case STAR:	/* zero or more (*)*/
 				e = pop();
 				s = state(Split, e.start, NULL);
 				patch(e.out, s);
 				push(frag(s, list1(&s->out1)));
 				break;
-			case 0x01:	/* one or more (+)*/
+			case PLUS:	/* one or more (+)*/
 				e = pop();
 				s = state(Split, e.start, NULL);
 				patch(e.out, s);
@@ -410,13 +410,13 @@ void putRange(SimpleReBuilder ** builder, char start, char end, int * bi) {
     (*builder)->size += amount;
     (*builder)->re = (char *)realloc((*builder)->re, (*builder)->size);
 
-    (*builder)->re[i++] = 0x05;
+    (*builder)->re[i++] = PAREN_OPEN;
     (*builder)->re[i++] = start;
     for (char k = start+1; k <= end; k++) {
-        (*builder)->re[i++] = 0x04;
+        (*builder)->re[i++] = ALTERNATE;
         (*builder)->re[i++] = k;
     }
-    (*builder)->re[i++] = 0x06;
+    (*builder)->re[i++] = PAREN_CLOSE;
 
     *bi = i;
 }
@@ -446,31 +446,31 @@ SimpleReBuilder * simplifyRe(char * complexRe, SimpleReBuilder * builder) {
                 break;
 
             case '.':
-                builder->re[j] = 0x15; //nak is ANY
+                builder->re[j] = ANY; //nak is ANY
                 break;
 
             case '+':
-                builder->re[j] = 0x01; //0x01 is +
+                builder->re[j] = PLUS; //0x01 is +
                 break;
 
             case '?':
-                builder->re[j] = 0x02; //0x02 is ?
+                builder->re[j] = QUESTION; //0x02 is ?
                 break;
 
             case '*':
-                builder->re[j] = 0x03; //0x03 is *
+                builder->re[j] = STAR; //0x03 is *
                 break;
 
             case '|':
-                builder->re[j] = 0x04; //0x04 is |
+                builder->re[j] = ALTERNATE; //0x04 is |
                 break;
 
             case '(':
-                builder->re[j] = 0x05; //0x05 is (
+                builder->re[j] = PAREN_OPEN; //0x05 is (
                 break;
 
             case ')':
-                builder->re[j] = 0x06; //0x06 is )
+                builder->re[j] = PAREN_CLOSE; //0x06 is )
                 break;
 
             case '[':
