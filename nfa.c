@@ -137,7 +137,7 @@ post2nfa(char *postfix)
 	stackp = stack;
 	for(p=postfix; *p; p++){
 		switch(*p){
-            case 0x15: /* any (.) */
+            case ANY: /* any (.) */
 				s = state(Any, NULL, NULL);
 				push(frag(s, list1(&s->out)));
 				break;
@@ -145,30 +145,30 @@ post2nfa(char *postfix)
 				s = state(*p, NULL, NULL);
 				push(frag(s, list1(&s->out)));
 				break;
-			case 0x1b:	/* catenate */
+			case CONCATENATE:	/* catenate */
 				e2 = pop();
 				e1 = pop();
 				patch(e1.out, e2.start);
 				push(frag(e1.start, e2.out));
 				break;
-			case 0x04:	/* alternate (|)*/
+			case ALTERNATE:	/* alternate (|)*/
 				e2 = pop();
 				e1 = pop();
 				s = state(Split, e1.start, e2.start);
 				push(frag(s, append(e1.out, e2.out)));
 				break;
-			case 0x02:	/* zero or one (?)*/
+			case QUESTION:	/* zero or one (?)*/
 				e = pop();
 				s = state(Split, e.start, NULL);
 				push(frag(s, append(e.out, list1(&s->out1))));
 				break;
-			case 0x03:	/* zero or more (*)*/
+			case STAR:	/* zero or more (*)*/
 				e = pop();
 				s = state(Split, e.start, NULL);
 				patch(e.out, s);
 				push(frag(s, list1(&s->out1)));
 				break;
-			case 0x01:	/* one or more (+)*/
+			case PLUS:	/* one or more (+)*/
 				e = pop();
 				s = state(Split, e.start, NULL);
 				patch(e.out, s);
@@ -365,7 +365,7 @@ char * stringify(char * nonull, int j) {
     return proper;
 }
 
-void handle_escape(SimpleReBuilder ** builder, char * complexRe, int len, int * bi, int * ci) {
+void handle_escape(SimpleReBuilder * builder, char * complexRe, int len, int * bi, int * ci) {
 
     int i = *ci;
     int j = *bi;
@@ -389,33 +389,33 @@ void handle_escape(SimpleReBuilder ** builder, char * complexRe, int len, int * 
         // default is just ignoring the backslash and taking the 
         // LITERAL character after no matter what
         default:
-            (*builder)->re[j++] = complexRe[i++];
+            builder->re[j++] = complexRe[i++];
             break;
     }
 
-    *ci = i;
-    *bi = j;
+    *ci = i-1; //-1 because we incremented at the end
+    *bi = j-1; //-1 because we incremented at the end
 }
 
-void putRange(SimpleReBuilder ** builder, char start, char end, int * bi) {
+void putRange(SimpleReBuilder * builder, char start, char end, int * bi) {
     
     int i = *bi;
     int amount = ((end - start + 1)*2)+1;
-    (*builder)->size += amount;
-    (*builder)->re = (char *)realloc((*builder)->re, (*builder)->size);
+    builder->size += amount;
+    builder->re = (char *)realloc(builder->re, builder->size);
 
-    (*builder)->re[i++] = 0x05;
-    (*builder)->re[i++] = start;
+    builder->re[i++] = PAREN_OPEN;
+    builder->re[i++] = start;
     for (char k = start+1; k <= end; k++) {
-        (*builder)->re[i++] = 0x04;
-        (*builder)->re[i++] = k;
+        builder->re[i++] = ALTERNATE;
+        builder->re[i++] = k;
     }
-    (*builder)->re[i++] = 0x06;
+    builder->re[i] = PAREN_CLOSE;
 
     *bi = i;
 }
 
-void handle_range(SimpleReBuilder ** builder, char * complexRe, int len, int * bi, int * ci) {
+void handle_range(SimpleReBuilder * builder, char * complexRe, int len, int * bi, int * ci) {
     
     int i = *ci;
     if (complexRe[i+4] != ']' || complexRe[i+2] != '-' || complexRe[i+1] > complexRe[i+3] || complexRe[i+1] <= 0x20) {
@@ -424,6 +424,7 @@ void handle_range(SimpleReBuilder ** builder, char * complexRe, int len, int * b
     }
 
     putRange(builder, complexRe[i+1], complexRe[i+3], bi);
+    *ci = i+4;
 }
 
 SimpleReBuilder * simplifyRe(char * complexRe, SimpleReBuilder * builder) {
@@ -436,39 +437,39 @@ SimpleReBuilder * simplifyRe(char * complexRe, SimpleReBuilder * builder) {
         switch(complexRe[i]) {
             
             case '\\':
-                handle_escape(&builder, complexRe, len, &j, &i);
+                handle_escape(builder, complexRe, len, &j, &i);
                 break;
 
             case '.':
-                builder->re[j] = 0x15; //nak is ANY
+                builder->re[j] = ANY; //nak is ANY
                 break;
 
             case '+':
-                builder->re[j] = 0x01; //0x01 is +
+                builder->re[j] = PLUS; //0x01 is +
                 break;
 
             case '?':
-                builder->re[j] = 0x02; //0x02 is ?
+                builder->re[j] = QUESTION; //0x02 is ?
                 break;
 
             case '*':
-                builder->re[j] = 0x03; //0x03 is *
+                builder->re[j] = STAR; //0x03 is *
                 break;
 
             case '|':
-                builder->re[j] = 0x04; //0x04 is |
+                builder->re[j] = ALTERNATE; //0x04 is |
                 break;
 
             case '(':
-                builder->re[j] = 0x05; //0x05 is (
+                builder->re[j] = PAREN_OPEN; //0x05 is (
                 break;
 
             case ')':
-                builder->re[j] = 0x06; //0x06 is )
+                builder->re[j] = PAREN_CLOSE; //0x06 is )
                 break;
 
             case '[':
-                handle_range(&builder, complexRe, len, &j, &i);
+                handle_range(builder, complexRe, len, &j, &i);
                 break;
 
             default:
@@ -493,10 +494,49 @@ void freeNFAStates(State *s) {
 	}
 }
 
+char * stringify(const char * oldRegex) {
+    int len = strlen(oldRegex);
+    char * newRegex = (char*)malloc(len+1);
+    int i;
+    for (i = 0; i < len; i++) {
+        switch(oldRegex[i]) {
+            case ANY:
+                newRegex[i] = '.';
+                break;
+            case CONCATENATE:
+                newRegex[i] = '`';
+                break;
+            case ALTERNATE:
+                newRegex[i] = '|';
+                break;
+            case QUESTION:
+                newRegex[i] = '?';
+                break;
+            case STAR:
+                newRegex[i] = '*';
+                break;
+            case PLUS:
+                newRegex[i] = '+';
+                break;
+            case PAREN_OPEN:
+                newRegex[i] = '(';
+                break;
+            case PAREN_CLOSE:
+                newRegex[i] = ')';
+                break;
+            default:
+                newRegex[i] = oldRegex[i];
+                break;
+        }
+    }
+    newRegex[i] = '\0';
+    return newRegex;
+}
+
 int
 main(int argc, char **argv)
 {	
-	int visualize, postfix, i, time, parallel = 1;
+	int visualize, simplified, postfix, i, time, parallel = 0;
 	char *fileName = NULL;
 	char *post;
     SimpleReBuilder builder;
@@ -505,10 +545,10 @@ main(int argc, char **argv)
 	char **lines;
 	int lineIndex;
 
-	parseCmdLine(argc, argv, &visualize, &postfix, &fileName, &time);
+	parseCmdLine(argc, argv, &visualize, &postfix, &fileName, &time, &simplified);
 
 	// argv index at which regex is present
-	int optIndex = 1 + visualize + postfix + time;
+	int optIndex = 1 + visualize + postfix + time + simplified;
 	if (fileName != NULL)
 		optIndex += 2;
 
@@ -519,7 +559,14 @@ main(int argc, char **argv)
 
     simplifyRe(argv[optIndex], &builder);
 
-	post = re2post(builder.re);
+    post = re2post(builder.re);
+
+    if (simplified == 1) {
+        char * clean_simplified = stringify(builder.re);
+        printf("\nSimplified Regex: %s\n", clean_simplified);
+        free(clean_simplified);
+        exit(0);
+    }
 
     /* destruct the simpleRe */
     _simpleReBuilder(&builder);
@@ -530,7 +577,9 @@ main(int argc, char **argv)
 	}
 
     if (postfix == 1) {
-		printf("\nPostfix buffer: %s\n", post);
+        char * clean_post = stringify(post);
+		printf("\nPostfix buffer: %s\n", clean_post);
+        free(clean_post);
         exit(0);
 	}
 
