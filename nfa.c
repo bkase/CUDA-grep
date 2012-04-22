@@ -295,21 +295,22 @@ anyMatch(State *start, char *s) {
  * Note: start has already been memcopyed over 
  * pos refers to whether its out or out1*/
 void
-copyStateToDevice(State *device_start, State *out, int pos) {
+copyStateToDevice(State **device_start, State *out, int pos) {
 
 	if (out != NULL) {
 		State *device_out;
 		// allocate memory for out state & copy it over
 		cudaMalloc((void **) &device_out, sizeof (State));	
-		cudaMemcpy(&device_out, &out, sizeof (State), cudaMemcpyHostToDevice);
+		cudaMemcpy(device_out, out, sizeof (State), cudaMemcpyHostToDevice);
+	
 		// make start point to out
 		if (pos == 0) 
-			cudaMemcpy(&(device_start->out), &device_out, sizeof (State), cudaMemcpyHostToDevice);
+			cudaMemcpy(&((*device_start)->out), &device_out, sizeof (State *), cudaMemcpyHostToDevice);
 		else 
-			cudaMemcpy(&(device_start->out1), &device_out, sizeof (State), cudaMemcpyHostToDevice);
+			cudaMemcpy(&((*device_start)->out1), &device_out, sizeof (State *), cudaMemcpyHostToDevice);
 	
-		copyStateToDevice(device_out, out->out, 0);
-		copyStateToDevice(device_out, out->out1, 1);
+		copyStateToDevice(&device_out, out->out, 0);
+		copyStateToDevice(&device_out, out->out1, 1);
 	}	
 
 }
@@ -317,9 +318,10 @@ copyStateToDevice(State *device_start, State *out, int pos) {
 void 
 copyNFAToDevice(State **device_start, State *start) {
 	cudaMalloc((void **) device_start, sizeof (State));
-	cudaMemcpy(device_start, &start, sizeof (State), cudaMemcpyHostToDevice);
-	copyStateToDevice(*device_start, start->out, 0);
-	copyStateToDevice(*device_start, start->out1, 1);
+	cudaMemcpy(*device_start, start, sizeof (State), cudaMemcpyHostToDevice);
+	
+	copyStateToDevice(device_start, start->out, 0);
+	copyStateToDevice(device_start, start->out1, 1);
 }
 
 void 
@@ -640,23 +642,16 @@ main(int argc, char **argv)
 		State *device_start;
 		char **device_lines;
 		
-		printf("Copying NFA to device \n");
-		fflush(stdout);
 		copyNFAToDevice(&device_start, start);	
 		
-		printf("Copying strings to device \n");
-		fflush(stdout);
 		copyStringsToDevice(lines, lineIndex, &device_lines);
 
-		printf("Copying lists to device \n");
-		fflush(stdout);
 		List *dl1;
 		List *dl2;
 		
 		cudaMalloc((void **) &dl1, sizeof (List));	
 		cudaMalloc((void **) &dl2, sizeof (List));	
 
-		printf("Malloced space for lists \n");
 		fflush(stdout);
 
 		State **s1;
@@ -664,13 +659,9 @@ main(int argc, char **argv)
 		cudaMalloc((void **) &(s1), nstate * sizeof (State *)); 
 		cudaMalloc((void **) &(s2), nstate * sizeof (State *)); 
 
-		printf("begin memcpy \n");
 		cudaMemcpy(&(dl1->s), &s1, sizeof (State **), cudaMemcpyHostToDevice);	
 		cudaMemcpy(&(dl2->s), &s2, sizeof (State **), cudaMemcpyHostToDevice);	
-
-		printf("Kernel call \n");
-		fflush(stdout);
-
+	
 		pMatch(device_start, device_lines, lineIndex, dl1, dl2);		
 
 		for (i = 0; i <= lineIndex; i++) 

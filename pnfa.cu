@@ -21,6 +21,7 @@ pstartlist(State *start, List *l)
 {
 	l->n = 0;
 	dlistid++;
+
 	paddstate(l, start);
 	return l;
 }
@@ -31,9 +32,10 @@ ispmatch(List *l)
 {
 	int i;
 
-	for(i=0; i<l->n; i++)
-		if(l->s[i] == &pmatchstate)
+	for(i=0; i<l->n; i++) {
+		if(l->s[i]->c == 256)
 			return 1;
+	}
 	return 0;
 }
 
@@ -70,8 +72,10 @@ pstep(List *clist, int c, List *nlist)
 	nlist->n = 0;
 	for(i=0; i<clist->n; i++){
 		s = clist->s[i];
-		if(s->c == c || s->c == Any)
+	
+		if(s->c == c || s->c == Any){
 			paddstate(nlist, s->out);
+		}
 	}
 }
 
@@ -94,7 +98,6 @@ pmatch(State *start, char *s)
 			return 1;
 
 	}
-	printf("hey \n");
 	return ispmatch(clist);
 }
 
@@ -119,30 +122,26 @@ __device__ inline int panypmatch(State *start, char *s) {
 
 
 __global__ void parallelMatch(State *start, char **lines, int lineIndex, List* ddl1, List *ddl2) {
-	printf("Entered kernel \n");
 	dl1 = ddl1;
 	dl2 = ddl2;
 
-/*	int i;
+	int i;
 	for (i = 0; i < lineIndex; i++) { 
-		printf("%d \n", i);
 		if (panypmatch(start, lines[i])) 
-			printf("%s \n", lines[i]);
-	
+			printf("%s", lines[i]);
 	}
-	*/
-
+	
+/*
 	// test to ensure that strings are copied over correctly
 	for( int i = 0; i < lineIndex; i++) {
 		printf("%s", lines[i]);		
 	}
-
-	printf("done \n");
-
+*/
+	
 }
 
 void pMatch(State *start, char **lines, int lineIndex, List* ddl1, List *ddl2) {
-	printCudaInfo(); 
+	//printCudaInfo(); 
 	parallelMatch<<<1,1>>>(start,lines,lineIndex,ddl1,ddl2);
 
 
