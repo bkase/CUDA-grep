@@ -18,6 +18,14 @@ struct State
 	unsigned char free;
 };
 
+
+typedef struct List List;
+struct List
+{
+	State **s;
+	int n;
+};
+
 /*
  * Represents an NFA state plus zero or one or two arrows exiting.
  * if c == Match, no arrows out; matching state.
@@ -31,6 +39,8 @@ enum
 	Split = 257,
     Any   = 258
 };
+
+
 void readFile(char *fileName, char ***lines, int *lineIndex);
 char* re2post(char *re);
 void usage(const char* progname);

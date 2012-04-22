@@ -13,7 +13,7 @@
  * Can be distributed under the MIT license, see bottom of file.
  */
 
-#include "nfautil.h"
+#include "pnfa.h"
 
 #define DEBUG
 #ifdef DEBUG
@@ -24,8 +24,9 @@
 #define LOG(...) //comment
 #endif
 
-State matchstate = { Match };	/* matching state */
 int nstate;
+State matchstate = { Match };	/* matching state */
+
 
 /* Allocate and initialize State */
 	State*
@@ -187,12 +188,6 @@ post2nfa(char *postfix)
 #undef push
 }
 
-typedef struct List List;
-struct List
-{
-	State **s;
-	int n;
-};
 List l1, l2;
 static int listid;
 
@@ -339,7 +334,6 @@ copyStringsToDevice(char **lines, int lineIndex, char ***device_lines) {
 		cudaMemcpy(line, lines[i], sizeof (char) * LINE_SIZE, cudaMemcpyHostToDevice);	
 		cudaMemcpy(&((*device_lines)[i]), &line, sizeof (char *), cudaMemcpyDeviceToDevice); 	
 	}
-
 }
 
 typedef struct {
@@ -502,7 +496,7 @@ void freeNFAStates(State *s) {
 int
 main(int argc, char **argv)
 {	
-	int visualize, postfix, i, time, parallel = 0;
+	int visualize, postfix, i, time, parallel = 1;
 	char *fileName = NULL;
 	char *post;
     SimpleReBuilder builder;
@@ -551,8 +545,8 @@ main(int argc, char **argv)
         exit(0);
 	}
 
-	l1.s = (State **) malloc(nstate*sizeof l1.s[0]);
-	l2.s = (State **) malloc(nstate*sizeof l2.s[0]);
+	l1.s = (State **) malloc(nstate*sizeof (State *));
+	l2.s = (State **) malloc(nstate*sizeof (State *));
 
 	fflush(stdout); // flush stdout before getting start time
 
@@ -597,11 +591,40 @@ main(int argc, char **argv)
 
 		State *device_start;
 		char **device_lines;
+		
+		printf("Copying NFA to device \n");
+		fflush(stdout);
 		copyNFAToDevice(&device_start, start);	
+		
+		printf("Copying strings to device \n");
+		fflush(stdout);
 		copyStringsToDevice(lines, lineIndex, &device_lines);
-	
+
+		printf("Copying lists to device \n");
+		fflush(stdout);
+		List *dl1;
+		List *dl2;
+		
+		cudaMalloc((void **) &dl1, sizeof (List));	
+		cudaMalloc((void **) &dl2, sizeof (List));	
+
+		printf("Malloced space for lists \n");
+		fflush(stdout);
+
+		State **s1;
+		State **s2;
+		cudaMalloc((void **) &(s1), nstate * sizeof (State *)); 
+		cudaMalloc((void **) &(s2), nstate * sizeof (State *)); 
+
+		printf("begin memcpy \n");
+		cudaMemcpy(&(dl1->s), &s1, sizeof (State **), cudaMemcpyHostToDevice);	
+		cudaMemcpy(&(dl2->s), &s2, sizeof (State **), cudaMemcpyHostToDevice);	
+
+		printf("Kernel call \n");
+		fflush(stdout);
 		//TODO kernel call
-		//parallelMatch<<<1,1>>>(device_start, device_lines, lineIndex);
+		pMatch(device_start, device_lines, lineIndex, dl1, dl2);
+		//parallelMatch<<<1,1>>>(device_start, device_lines, lineIndex, dl1, dl2);
 		
 		//TODO free up GPU memory	
 	

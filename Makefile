@@ -1,7 +1,8 @@
 CC=gcc
 NVCC=nvcc
-CFLAGS=-O3
-CFLAGS_DEBUG=-g
+CFLAGS=-O3 -m64 -arch compute_20
+CFLAGS_DEBUG=-g -m64 -arch compute_20
+
 
 all: nfa nfa_debug
 
