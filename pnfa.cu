@@ -66,7 +66,6 @@ pstep(List *clist, int c, List *nlist)
 {
 	int i;
 	State *s;
-
 	dlistid++;
 	nlist->n = 0;
 	for(i=0; i<clist->n; i++){
@@ -89,12 +88,13 @@ pmatch(State *start, char *s)
 		c = *s & 0xFF;
 		pstep(clist, c, nlist);
 		t = clist; clist = nlist; nlist = t;	// swap clist, nlist 
-
+	
 		// check for a match in the middle of the string
 		if (ispmatch(clist))
 			return 1;
 
 	}
+	printf("hey \n");
 	return ispmatch(clist);
 }
 
@@ -103,7 +103,7 @@ __device__ inline int panypmatch(State *start, char *s) {
 	int isMatch = pmatch(start, s);
 	int index = 0;
 	int len = 0; 
-
+	
 	char * sc = s;
 	while(sc != '\0') {
 		len ++;
@@ -123,17 +123,41 @@ __global__ void parallelMatch(State *start, char **lines, int lineIndex, List* d
 	dl1 = ddl1;
 	dl2 = ddl2;
 
-	int i;
+/*	int i;
 	for (i = 0; i < lineIndex; i++) { 
-	/*	if (panypmatch(start, lines[i])) 
-			printf("%s", lines[i]);
-	*/
+		printf("%d \n", i);
+		if (panypmatch(start, lines[i])) 
+			printf("%s \n", lines[i]);
+	
 	}
+	*/
+
+	// test to ensure that strings are copied over correctly
+	for( int i = 0; i < lineIndex; i++) {
+		printf("%s", lines[i]);		
+	}
+
+	printf("done \n");
+
 }
 
 void pMatch(State *start, char **lines, int lineIndex, List* ddl1, List *ddl2) {
-	//printCudaInfo(); 
-	parallelMatch<<<1,1>>>(start, lines, lineIndex, ddl1, ddl2);	
+	printCudaInfo(); 
+	parallelMatch<<<1,1>>>(start,lines,lineIndex,ddl1,ddl2);
+
+
+	//TODO free states
+
+	int i;	
+	for (i = 0; i <= lineIndex; i++) 
+		cudaFree(&(lines[i]));
+	cudaFree(&lines);
+
+	cudaFree(&(ddl1->s));
+	cudaFree(&(ddl2->s));
+	cudaFree(&ddl1);
+	cudaFree(&ddl2);
+
 }
 
 

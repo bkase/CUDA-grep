@@ -325,21 +325,20 @@ copyNFAToDevice(State **device_start, State *start) {
 void 
 copyStringsToDevice(char **lines, int lineIndex, char ***device_lines) {
 
-	// allocate memory for pointers
 	cudaMalloc((void **) device_lines, sizeof (char *) * lineIndex);
 	// copy each line over
-	for (int i = 0; i < lineIndex; i++) {
+	for (int  i = 0; i < lineIndex; i++) {
 		char *line; 
 		cudaMalloc((void **) &line, sizeof (char) * LINE_SIZE);
 		cudaMemcpy(line, lines[i], sizeof (char) * LINE_SIZE, cudaMemcpyHostToDevice);	
-		cudaMemcpy(&((*device_lines)[i]), &line, sizeof (char *), cudaMemcpyDeviceToDevice); 	
+		cudaMemcpy(&((*device_lines)[i]), &line, sizeof (char *), cudaMemcpyHostToDevice); 	
 	}
 }
 
 typedef struct {
-    int i;
-    int size;
-    char * re;
+	int i;
+	int size;
+	char * re;
 } SimpleReBuilder;
 
 /* constructor for SimpleReBuilder */
@@ -536,7 +535,7 @@ char * stringify(const char * oldRegex) {
 int
 main(int argc, char **argv)
 {	
-	int visualize, simplified, postfix, i, time, parallel = 0;
+	int visualize, simplified, postfix, i, time, parallel = 1;
 	char *fileName = NULL;
 	char *post;
     SimpleReBuilder builder;
@@ -671,12 +670,9 @@ main(int argc, char **argv)
 
 		printf("Kernel call \n");
 		fflush(stdout);
-		//TODO kernel call
-		pMatch(device_start, device_lines, lineIndex, dl1, dl2);
-		//parallelMatch<<<1,1>>>(device_start, device_lines, lineIndex, dl1, dl2);
-		
-		//TODO free up GPU memory	
-	
+
+		pMatch(device_start, device_lines, lineIndex, dl1, dl2);		
+
 		for (i = 0; i <= lineIndex; i++) 
 		free(lines[i]);
 		free(lines);
