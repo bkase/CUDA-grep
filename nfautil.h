@@ -1,3 +1,6 @@
+#ifndef NFAUTIL_H
+#define NFAUTIL_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,4 +59,7 @@ void usage(const char* progname);
 void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fileName, int *time, int *simplified); 
 void visualize_nfa_help(State * start);
 void visualize_nfa(State * start);
+void freeNFAStates(State *s);
 double gettime();
+
+#endif
