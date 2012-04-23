@@ -123,12 +123,18 @@ __device__ inline int panypmatch(State *start, char *s) {
 }
 
 
-__global__ void parallelMatch(State *start, char **lines, int lineIndex, List* ddl1, List *ddl2, int time) {
-	dl1 = ddl1;
-	dl2 = ddl2;
+__global__ void parallelMatch(State *start, char **lines, int lineIndex, int nstate, int time) {
+	//dl1 = ddl1;
+	//dl2 = ddl2;
+
+	List d1;
+	List d2;
+	
+	dl1 = &d1;
+	dl2 = &d2;
 
 	int i;
-	for (i = 0; i < lineIndex; i++) { 
+	for (i = 0 + blockIdx.x; i < lineIndex; i += blockDim.x) { 
 		if (panypmatch(start, lines[i])) 
 			PRINT(time, "%s", lines[i]);
 	}
@@ -142,9 +148,9 @@ __global__ void parallelMatch(State *start, char **lines, int lineIndex, List* d
 	
 }
 
-void pMatch(State *start, char **lines, int lineIndex, List* ddl1, List *ddl2, int time) {
+void pMatch(State *start, char **lines, int lineIndex, int nstate, int time) {
 	//printCudaInfo(); 
-	parallelMatch<<<1,1>>>(start,lines,lineIndex,ddl1,ddl2,time);
+	parallelMatch<<<1,1>>>(start,lines,lineIndex, nstate ,time);
 
 
 	//TODO free states
@@ -153,12 +159,12 @@ void pMatch(State *start, char **lines, int lineIndex, List* ddl1, List *ddl2, i
 	for (i = 0; i <= lineIndex; i++) 
 		cudaFree(&(lines[i]));
 	cudaFree(&lines);
-
+/*
 	cudaFree(&(ddl1->s));
 	cudaFree(&(ddl2->s));
 	cudaFree(&ddl1);
 	cudaFree(&ddl2);
-
+*/
 }
 
 

@@ -341,12 +341,12 @@ copyStringsToDevice(char **lines, int lineIndex, char ***device_lines) {
 int
 main(int argc, char **argv)
 {	
-	int visualize, simplified, postfix, i, time, parallel = 1;
+	int visualize, simplified, postfix, i, time, parallel = 0;
 	char *fileName = NULL;
 	char *post;
     SimpleReBuilder builder;
 	State *start;
-	double startTime, endTime, endReadFile, endCopyNFAToDevice, endCopyStringsToDevice, endCudaMallocs, endCudaMallocs2, endCudaMemcpys, endPMatch; 
+	double startTime, endTime, endReadFile, endCopyNFAToDevice, endCopyStringsToDevice, endPMatch; 
 	char **lines;
 	int lineIndex;
 
@@ -399,8 +399,8 @@ main(int argc, char **argv)
         exit(0);
 	}
 
-	l1.s = (State **) malloc(nstate*sizeof (State *));
-	l2.s = (State **) malloc(nstate*sizeof (State *));
+	//l1.s = (State **) malloc(nstate*sizeof (State *));
+	//l2.s = (State **) malloc(nstate*sizeof (State *));
 
 	fflush(stdout); // flush stdout before getting start time
 
@@ -421,7 +421,9 @@ main(int argc, char **argv)
 
             startTime = CycleTimer::currentSeconds();
 			for (i = 0; i < lineIndex; i++) { 
-				if (anyMatch(start, lines[i])) 
+				if (anyMatch(start, lines[i]))  
+					
+				
 					//TODO need to put this statement out side loop body
 					printf("%s", lines[i]);
 			}
@@ -443,46 +445,20 @@ main(int argc, char **argv)
 	
         startTime = CycleTimer::currentSeconds();
 
-		readFile(fileName, &lines, &lineIndex); 	
-        
+		readFile(fileName, &lines, &lineIndex); 	 
         endReadFile = CycleTimer::currentSeconds();
 
 		State *device_start;
 		char **device_lines;
 
 		
-		copyNFAToDevice(&device_start, start);	
-        
+		copyNFAToDevice(&device_start, start);	 
         endCopyNFAToDevice = CycleTimer::currentSeconds();
 		
 		copyStringsToDevice(lines, lineIndex, &device_lines);
-        
         endCopyStringsToDevice = CycleTimer::currentSeconds();
 
-		List *dl1;
-		List *dl2;
-		
-		cudaMalloc((void **) &dl1, sizeof (List));	
-		cudaMalloc((void **) &dl2, sizeof (List));	
-        
-        endCudaMallocs = CycleTimer::currentSeconds();
-
-		fflush(stdout);
-
-		State **s1;
-		State **s2;
-		cudaMalloc((void **) &(s1), nstate * sizeof (State *)); 
-		cudaMalloc((void **) &(s2), nstate * sizeof (State *)); 
-
-        endCudaMallocs2 = CycleTimer::currentSeconds();
-
-		cudaMemcpy(&(dl1->s), &s1, sizeof (State **), cudaMemcpyHostToDevice);	
-		cudaMemcpy(&(dl2->s), &s2, sizeof (State **), cudaMemcpyHostToDevice);	
-
-        endCudaMemcpys = CycleTimer::currentSeconds();
-	
-		pMatch(device_start, device_lines, lineIndex, dl1, dl2, time);		
-
+		pMatch(device_start, device_lines, lineIndex, nstate, time);		
         endPMatch = CycleTimer::currentSeconds();
 
 		for (i = 0; i <= lineIndex; i++) 
@@ -498,19 +474,13 @@ main(int argc, char **argv)
 		printf("\nParallel ReadFile Time taken %.4f \n", (endReadFile - startTime));
 		printf("\nParallel CopyNFAToDevice Time taken %.4f \n", (endCopyNFAToDevice - endReadFile));
 		printf("\nParallel CopyStringsToDevice Time taken %.4f \n", (endCopyStringsToDevice - endCopyNFAToDevice));
-		printf("\nParallel CudaMallocs Time taken %.4f \n\n", (endCudaMallocs - endCopyStringsToDevice));
-		printf("\nParallel CudaMallocs2 Time taken %.4f \n\n", (endCudaMallocs2 - endCudaMallocs));
-		printf("\nParallel CudaMemcpys Time taken %.4f \n\n", (endCudaMemcpys - endCudaMallocs2));
-		printf("\nParallel pMatch Time taken %.4f \n\n", (endPMatch - endCudaMemcpys));
+		printf("\nParallel pMatch Time taken %.4f \n\n", (endPMatch - endCopyStringsToDevice));
 		printf("\nParallel Total Time taken %.4f \n\n", (endPMatch - startTime));
     }
 	// free up memory
 	freeNFAStates(start);		
 
-	free(l1.s);
-	free(l2.s);
-
-	return EXIT_SUCCESS;
+		return EXIT_SUCCESS;
 }
 
 

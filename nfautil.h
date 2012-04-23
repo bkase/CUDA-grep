@@ -34,7 +34,8 @@ struct State
 typedef struct List List;
 struct List
 {
-	State **s;
+	// only handle fixed number of states
+	State *s[100];
 	int n;
 };
 
