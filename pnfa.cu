@@ -9,7 +9,6 @@
 
 #define PRINT(time,...) if(!time) printf(__VA_ARGS__)
 
-__device__ List *dl1, *dl2;
 __device__ static int dlistid;
 __device__ State pmatchstate = { Match };	/* matching state */
 
@@ -83,7 +82,7 @@ pstep(List *clist, int c, List *nlist)
 
 /* Run NFA to determine whether it matches s. */
 __device__ inline int
-pmatch(State *start, char *s)
+pmatch(State *start, char *s, List *dl1, List *dl2)
 {
 	int c;
 	List *clist, *nlist, *t;
@@ -104,8 +103,8 @@ pmatch(State *start, char *s)
 }
 
 /* Check for a string match at all possible start positions */
-__device__ inline int panypmatch(State *start, char *s) { 
-	int isMatch = pmatch(start, s);
+__device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2) { 
+	int isMatch = pmatch(start, s, dl1, dl2);
 	int index = 0;
 	int len = 0; 
 	
@@ -116,7 +115,7 @@ __device__ inline int panypmatch(State *start, char *s) {
 	}
 
 	while (!isMatch && index <= len) {
-		isMatch = pmatch(start, s + index);
+		isMatch = pmatch(start, s + index, dl1, dl2);
 		index ++;
 	}
 	return isMatch;
@@ -128,17 +127,21 @@ __global__ void parallelMatch(State *start, char **lines, int lineIndex, int nst
 	//dl2 = ddl2;
 
 	List d1;
-	List d2;
-	
-	dl1 = &d1;
-	dl2 = &d2;
-
+	List d2;	
+/*
 	int i;
-	for (i = 0 + blockIdx.x; i < lineIndex; i += blockDim.x) { 
-		if (panypmatch(start, lines[i])) 
+	for (i = blockIdx.x * gridDim.x; i < lineIndex && i < (blockIdx.x +1) * gridDim.x; i +=1) { 
+		if (panypmatch(start, lines[i], &d1, &d2)) 
 			PRINT(time, "%s", lines[i]);
 	}
-	
+*/
+
+	int i;
+	for (i = blockIdx.x * blockDim.x + threadIdx.x; i < lineIndex; i += gridDim.x * blockDim.x) { 
+		if (panypmatch(start, lines[i], &d1, &d2)) 
+			PRINT(time, "%s", lines[i]);
+	}
+
 /*
 	// test to ensure that strings are copied over correctly
 	for( int i = 0; i < lineIndex; i++) {
@@ -150,7 +153,7 @@ __global__ void parallelMatch(State *start, char **lines, int lineIndex, int nst
 
 void pMatch(State *start, char **lines, int lineIndex, int nstate, int time) {
 	//printCudaInfo(); 
-	parallelMatch<<<1,1>>>(start,lines,lineIndex, nstate ,time);
+	parallelMatch<<<256,256>>>(start,lines,lineIndex, nstate ,time);
 
 
 	//TODO free states
@@ -159,12 +162,7 @@ void pMatch(State *start, char **lines, int lineIndex, int nstate, int time) {
 	for (i = 0; i <= lineIndex; i++) 
 		cudaFree(&(lines[i]));
 	cudaFree(&lines);
-/*
-	cudaFree(&(ddl1->s));
-	cudaFree(&(ddl2->s));
-	cudaFree(&ddl1);
-	cudaFree(&ddl2);
-*/
+
 }
 
 

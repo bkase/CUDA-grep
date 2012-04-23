@@ -341,7 +341,7 @@ copyStringsToDevice(char **lines, int lineIndex, char ***device_lines) {
 int
 main(int argc, char **argv)
 {	
-	int visualize, simplified, postfix, i, time, parallel = 0;
+	int visualize, simplified, postfix, i, time, parallel = 1;
 	char *fileName = NULL;
 	char *post;
     SimpleReBuilder builder;
