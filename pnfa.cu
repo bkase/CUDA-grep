@@ -7,6 +7,8 @@
 
 #include "pnfa.h"
 
+#define PRINT(time,...) if(!time) printf(__VA_ARGS__)
+
 __device__ List *dl1, *dl2;
 __device__ static int dlistid;
 __device__ State pmatchstate = { Match };	/* matching state */
@@ -121,14 +123,14 @@ __device__ inline int panypmatch(State *start, char *s) {
 }
 
 
-__global__ void parallelMatch(State *start, char **lines, int lineIndex, List* ddl1, List *ddl2) {
+__global__ void parallelMatch(State *start, char **lines, int lineIndex, List* ddl1, List *ddl2, int time) {
 	dl1 = ddl1;
 	dl2 = ddl2;
 
 	int i;
 	for (i = 0; i < lineIndex; i++) { 
 		if (panypmatch(start, lines[i])) 
-			printf("%s", lines[i]);
+			PRINT(time, "%s", lines[i]);
 	}
 	
 /*
@@ -140,9 +142,9 @@ __global__ void parallelMatch(State *start, char **lines, int lineIndex, List* d
 	
 }
 
-void pMatch(State *start, char **lines, int lineIndex, List* ddl1, List *ddl2) {
+void pMatch(State *start, char **lines, int lineIndex, List* ddl1, List *ddl2, int time) {
 	//printCudaInfo(); 
-	parallelMatch<<<1,1>>>(start,lines,lineIndex,ddl1,ddl2);
+	parallelMatch<<<1,1>>>(start,lines,lineIndex,ddl1,ddl2,time);
 
 
 	//TODO free states
