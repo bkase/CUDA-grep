@@ -307,12 +307,14 @@ copyStateToDevice(State **device_start, State *out, int pos) {
 		// make start point to out
 		if (pos == 0) 
 			cudaMemcpy(&((*device_start)->out), &device_out, sizeof (State *), cudaMemcpyHostToDevice);
-		else 
+		else { 
 			cudaMemcpy(&((*device_start)->out1), &device_out, sizeof (State *), cudaMemcpyHostToDevice);
-	
+		}
 		copyStateToDevice(&device_out, out->out, 0);
 		copyStateToDevice(&device_out, out->out1, 1);
-	}	
+	}
+	else {
+	}
 
 }
 

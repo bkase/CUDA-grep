@@ -9,11 +9,16 @@
 
 #define PRINT(time,...) if(!time) printf(__VA_ARGS__)
 
+#define IS_EMPTY(l) (l->n == 0)
+#define PUSH(l, state) l->s[l->n++] = state
+#define POP(l) l->s[l->n]; 
+
+
 __device__ static int dlistid;
 __device__ State pmatchstate = { Match };	/* matching state */
 
 
-__device__ inline void paddstate(List*, State*);
+__device__ inline void paddstate(List*, State*, List*);
 __device__ inline void pstep(List*, int, List*);
 
 /* Compute initial state list */
@@ -23,7 +28,8 @@ pstartlist(State *start, List *l)
 	l->n = 0;
 	dlistid++;
 
-	paddstate(l, start);
+	List addStartState;
+	paddstate(l, start, &addStartState);
 	return l;
 }
 
@@ -41,24 +47,31 @@ ispmatch(List *l)
 }
 
 /* Add s to l, following unlabeled arrows. */
-__device__ inline void
-paddstate(List *l, State *s)
-{
-	// lastlist check is present to ensure that if
-	// multiple states point to this state, then only
-	// one instance of the state is added to the list
-	if(s == NULL || s->lastlist == dlistid)
-		return;
-	s->lastlist = dlistid;
-	if(s->c == Split){
-		/* follow unlabeled arrows */
-		if (s->out != NULL)
-			paddstate(l, s->out);
-		if (s->out1 != NULL)
-			paddstate(l, s->out1);
-		return;
+	__device__ inline void
+paddstate(List *l, State *s, List *addStateList)
+{	
+	addStateList->n = 0;
+	PUSH(addStateList, s);
+	/* follow unlabeled arrows */
+	while(!IS_EMPTY(addStateList)) {	
+	
+		addStateList->n--;
+		s = POP(addStateList);
+	
+		// lastlist check is present to ensure that if
+		// multiple states point to this state, then only
+		//one instance of the state is added to the list
+		if(s == NULL || s->lastlist == dlistid);
+		else if (s->c == 257) {
+			s->lastlist = dlistid; 
+			PUSH(addStateList, s->out);
+			PUSH(addStateList, s->out1);	
+		}
+		else {
+			s->lastlist = dlistid; 
+			l->s[l->n++] = s;
+		}
 	}
-	l->s[l->n++] = s;
 }
 
 /*
@@ -77,7 +90,8 @@ pstep(List *clist, int c, List *nlist)
 		s = clist->s[i];
 	
 		if(s->c == c || s->c == Any){
-			paddstate(nlist, s->out);
+			List addStartState;
+			paddstate(nlist, s->out, &addStartState);
 		}
 	}
 }
@@ -109,7 +123,6 @@ __device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2) {
 	int isMatch = pmatch(start, s, dl1, dl2);
 	int index = 0;
 	int len = 0; 
-	
 	char * sc = s;
 	while(*sc != 0) {
 		len ++;
@@ -125,9 +138,6 @@ __device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2) {
 
 
 __global__ void parallelMatch(State *start, char **lines, int lineIndex, int nstate, int time) {
-	//dl1 = ddl1;
-	//dl2 = ddl2;
-
 	List d1;
 	List d2;	
 /*
@@ -154,7 +164,7 @@ __global__ void parallelMatch(State *start, char **lines, int lineIndex, int nst
 }
 
 void pMatch(State *start, char **lines, int lineIndex, int nstate, int time) {
-	//printCudaInfo(); 
+		//printCudaInfo(); 
 	parallelMatch<<<1,1>>>(start,lines,lineIndex, nstate ,time);
 
 
