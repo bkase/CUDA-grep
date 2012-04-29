@@ -2,7 +2,16 @@
 
 teststrings=(
 "ROMEO" "JULIET"
-"ROMEO|JULIET" "R." "R.MEO|JULIET"
+#Test +*|
+"ROMEO|JULIET" "R+" "R*" "R" "R+R*" "R*R+" "RR+" "RR*" "R+|J+" "(R|J)ULIET" 
+#Test for the . wildcard
+"R..EO" "R..EO|...IET" "R..*"
+#Test for ranges
+"[a-b]" "[q-s]" "[0-9]"
+#Test for the \ sequence
+"\?" "\|" "\+" "\*" "\." "\.\?\|\+\*" 
+#Random tests
+".*\?" "t*hi.\?"
 );
 
 date >> RESULTS

@@ -16,6 +16,8 @@
 #include "pnfa.h"
 #include "cycleTimer.h"
 
+#define STATE_COPIED 10
+
 #define DEBUG
 #ifdef DEBUG
 #define LOG(...) printf(__VA_ARGS__)
@@ -41,6 +43,11 @@ state(int c, State *out, State *out1)
 	s->c = c;
 	s->out = out;
 	s->out1 = out1;
+	
+	// device pointer of itself
+	// serves no real purpose other than to help transfer the NFA over
+	s->dev = NULL;
+	
 	s->free = 0;
 	return s;
 }
@@ -298,31 +305,47 @@ anyMatch(State *start, char *s) {
 void
 copyStateToDevice(State **device_start, State *out, int pos) {
 
-	if (out != NULL) {
-		State *device_out;
-		// allocate memory for out state & copy it over
-		cudaMalloc((void **) &device_out, sizeof (State));	
-		cudaMemcpy(device_out, out, sizeof (State), cudaMemcpyHostToDevice);
+	if ((out != NULL)) { // && out->free != STATE_COPIED)) {
+		out->free = STATE_COPIED;
 	
+		State *device_out = out->dev;
+		int done;
+		// if the device version is not yet allocated, then allocate
+		if (out->dev == NULL) {
+			// allocate memory for out state & copy it over
+			cudaMalloc((void **) &device_out, sizeof (State));	
+			out->dev = device_out;
+			cudaMemcpy(device_out, out, sizeof (State), cudaMemcpyHostToDevice);
+			done = 0;
+		}
+		else {
+			// if out->dev is not null, then we have already traversed out->out and out->out1 so stop
+			done = 1;
+		}
+		
 		// make start point to out
 		if (pos == 0) 
 			cudaMemcpy(&((*device_start)->out), &device_out, sizeof (State *), cudaMemcpyHostToDevice);
 		else { 
 			cudaMemcpy(&((*device_start)->out1), &device_out, sizeof (State *), cudaMemcpyHostToDevice);
 		}
-		copyStateToDevice(&device_out, out->out, 0);
-		copyStateToDevice(&device_out, out->out1, 1);
-	}
-	else {
+
+		if (done == 0) {
+			copyStateToDevice(&device_out, out->out, 0);
+			copyStateToDevice(&device_out, out->out1, 1);
+		}
 	}
 
 }
 
 void 
 copyNFAToDevice(State **device_start, State *start) {
+	start->free = STATE_COPIED;
+
 	cudaMalloc((void **) device_start, sizeof (State));
 	cudaMemcpy(*device_start, start, sizeof (State), cudaMemcpyHostToDevice);
 	
+	start->dev = *device_start;
 	copyStateToDevice(device_start, start->out, 0);
 	copyStateToDevice(device_start, start->out1, 1);
 }

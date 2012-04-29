@@ -26,6 +26,9 @@ struct State
     int id;
 	State *out;
 	State *out1;
+	
+	State *dev;
+
 	int lastlist;
 	unsigned char free;
 };
