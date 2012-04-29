@@ -52,8 +52,10 @@ paddstate(List *l, State *s)
 	s->lastlist = dlistid;
 	if(s->c == Split){
 		/* follow unlabeled arrows */
-		paddstate(l, s->out);
-		paddstate(l, s->out1);
+		if (s->out != NULL)
+			paddstate(l, s->out);
+		if (s->out1 != NULL)
+			paddstate(l, s->out1);
 		return;
 	}
 	l->s[l->n++] = s;
@@ -109,12 +111,12 @@ __device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2) {
 	int len = 0; 
 	
 	char * sc = s;
-	while(sc != '\0') {
+	while(*sc != 0) {
 		len ++;
-		sc += 1;
+		sc += 1;	
 	}
-
-	while (!isMatch && index <= len) {
+	
+	while (!isMatch && index < len) {
 		isMatch = pmatch(start, s + index, dl1, dl2);
 		index ++;
 	}
@@ -153,7 +155,7 @@ __global__ void parallelMatch(State *start, char **lines, int lineIndex, int nst
 
 void pMatch(State *start, char **lines, int lineIndex, int nstate, int time) {
 	//printCudaInfo(); 
-	parallelMatch<<<256,256>>>(start,lines,lineIndex, nstate ,time);
+	parallelMatch<<<1,1>>>(start,lines,lineIndex, nstate ,time);
 
 
 	//TODO free states
