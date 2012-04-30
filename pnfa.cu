@@ -137,7 +137,7 @@ __device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2) {
 }
 
 
-__global__ void parallelMatch(State *start, char * bigLine, int * tableOfLineStarts, int lineIndex, int nstate, int time) {
+__global__ void parallelMatch(State *start, char * bigLine, u32 * tableOfLineStarts, int lineIndex, int nstate, int time) {
 	List d1;
 	List d2;	
 /*
@@ -151,7 +151,10 @@ __global__ void parallelMatch(State *start, char * bigLine, int * tableOfLineSta
 	int i;
 	for (i = blockIdx.x * blockDim.x + threadIdx.x; i < lineIndex; i += gridDim.x * blockDim.x) { 
         PRINT(time, "i:%d\n", i);
-        PRINT(time, "%c %c %c\n", bigLine[0], bigLine[1], bigLine[2]);
+        PRINT(time, "%s\n", bigLine);
+        for (int j = 0; j < lineIndex; j++) {
+            PRINT(time, "table:%d\n", tableOfLineStarts[i]);
+        }
         char * lineSegment = bigLine + tableOfLineStarts[i];
         PRINT(time, "%s\n", lineSegment);
 
@@ -168,7 +171,7 @@ __global__ void parallelMatch(State *start, char * bigLine, int * tableOfLineSta
 	
 }
 
-void pMatch(State *start, char * bigLine, int * tableOfLineStarts, int lineIndex, int nstate, int time) {
+void pMatch(State *start, char * bigLine, u32 * tableOfLineStarts, int lineIndex, int nstate, int time) {
 		//printCudaInfo(); 
     
 	parallelMatch<<<1,1>>>(start,bigLine,tableOfLineStarts, lineIndex, nstate ,time);

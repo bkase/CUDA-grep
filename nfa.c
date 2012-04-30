@@ -351,12 +351,12 @@ copyNFAToDevice(State **device_start, State *start) {
 }
 
 void 
-copyStringsToDevice(char **lines, int lineIndex, char ** device_line, int ** device_table) {
+copyStringsToDevice(char **lines, int lineIndex, char ** device_line, u32 ** device_table) {
     
     //TODO: Is it more efficient to do this in two passes or to realloc a bunch of times
     //TODO: Instead of making some tableOfLineStarts empty use a different index for the avoided line[i]
     int size = 0;
-    u32 * tableOfLineStarts = (u32 *)malloc(sizeof(u32)*lineIndex);
+    u32 * tableOfLineStarts = (u32 *)malloc(sizeof(u32)*(lineIndex+1));
     for (int i = 0; i < lineIndex; i++) {
         tableOfLineStarts[i] = size;
         size += strlen(lines[i]) + 1;
@@ -387,12 +387,12 @@ copyStringsToDevice(char **lines, int lineIndex, char ** device_line, int ** dev
     printf("%s\n", cudaGetErrorString(error));
 
     //TODO: check for cudaMalloc errors
-    cudaMemcpy(device_line, bigLine, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(*device_line, bigLine, size, cudaMemcpyHostToDevice);
 
     error = cudaMalloc((void **) device_table, sizeof(u32)*lineIndex);
     printf("%s\n", cudaGetErrorString(error));
 
-    cudaMemcpy(device_table, tableOfLineStarts, sizeof(u32)*(lineIndex+1), cudaMemcpyHostToDevice);
+    cudaMemcpy(*device_table, tableOfLineStarts, sizeof(u32)*(lineIndex+1), cudaMemcpyHostToDevice);
 
     free(tableOfLineStarts);
     free(bigLine);
@@ -511,7 +511,7 @@ main(int argc, char **argv)
 
 		State *device_start;
 		char * device_line;
-        int * device_table;
+        u32 * device_table;
 
 		
 		copyNFAToDevice(&device_start, start);	 
