@@ -137,7 +137,7 @@ __device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2) {
 }
 
 
-__global__ void parallelMatch(State *start, char **lines, int lineIndex, int nstate, int time) {
+__global__ void parallelMatch(State *start, char * bigLine, int * tableOfLineStarts, int lineIndex, int nstate, int time) {
 	List d1;
 	List d2;	
 /*
@@ -150,8 +150,13 @@ __global__ void parallelMatch(State *start, char **lines, int lineIndex, int nst
 
 	int i;
 	for (i = blockIdx.x * blockDim.x + threadIdx.x; i < lineIndex; i += gridDim.x * blockDim.x) { 
-		if (panypmatch(start, lines[i], &d1, &d2)) 
-			PRINT(time, "%s", lines[i]);
+        PRINT(time, "i:%d\n", i);
+        PRINT(time, "%c %c %c\n", bigLine[0], bigLine[1], bigLine[2]);
+        char * lineSegment = bigLine + tableOfLineStarts[i];
+        PRINT(time, "%s\n", lineSegment);
+
+        /* if (panypmatch(start, lineSegment, &d1, &d2)) 
+                    PRINT(time, "%s", linesSegment);*/
 	}
 
 /*
@@ -163,17 +168,22 @@ __global__ void parallelMatch(State *start, char **lines, int lineIndex, int nst
 	
 }
 
-void pMatch(State *start, char **lines, int lineIndex, int nstate, int time) {
+void pMatch(State *start, char * bigLine, int * tableOfLineStarts, int lineIndex, int nstate, int time) {
 		//printCudaInfo(); 
-	parallelMatch<<<1,1>>>(start,lines,lineIndex, nstate ,time);
+    
+	parallelMatch<<<1,1>>>(start,bigLine,tableOfLineStarts, lineIndex, nstate ,time);
 
+    cudaThreadSynchronize();
 
 	//TODO free states
+    cudaError_t error = cudaGetLastError();
+    if (error != cudaSuccess) {
+        printf("CUDA Error: %s\n", cudaGetErrorString(error));
+        exit(-1);
+    }
 
-	int i;	
-	for (i = 0; i <= lineIndex; i++) 
-		cudaFree(&(lines[i]));
-	cudaFree(&lines);
+	cudaFree(&bigLine);
+    cudaFree(&tableOfLineStarts);
 
 }
 

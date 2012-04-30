@@ -351,16 +351,52 @@ copyNFAToDevice(State **device_start, State *start) {
 }
 
 void 
-copyStringsToDevice(char **lines, int lineIndex, char ***device_lines) {
+copyStringsToDevice(char **lines, int lineIndex, char ** device_line, int ** device_table) {
+    
+    //TODO: Is it more efficient to do this in two passes or to realloc a bunch of times
+    //TODO: Instead of making some tableOfLineStarts empty use a different index for the avoided line[i]
+    int size = 0;
+    u32 * tableOfLineStarts = (u32 *)malloc(sizeof(u32)*lineIndex);
+    for (int i = 0; i < lineIndex; i++) {
+        tableOfLineStarts[i] = size;
+        size += strlen(lines[i]) + 1;
+    }
+    tableOfLineStarts[lineIndex] = size;
 
-	cudaMalloc((void **) device_lines, sizeof (char *) * lineIndex);
-	// copy each line over
-	for (int  i = 0; i < lineIndex; i++) {
-		char *line; 
-		cudaMalloc((void **) &line, sizeof (char) * LINE_SIZE);
-		cudaMemcpy(line, lines[i], sizeof (char) * LINE_SIZE, cudaMemcpyHostToDevice);	
-		cudaMemcpy(&((*device_lines)[i]), &line, sizeof (char *), cudaMemcpyHostToDevice); 	
-	}
+    char * bigLine = (char *)malloc(size);
+    char * bigLineRunner = bigLine;
+    for (int i = 0; i < lineIndex; i++) {
+        //the size of this line is the runningTotal at the next index minus the runningTotal at this one (subtract off the null byte)
+        int lineSize = (tableOfLineStarts[i+1] - tableOfLineStarts[i]) - 1;
+        if (lineSize != 0) {
+            memcpy(bigLineRunner, lines[i], lineSize);
+            bigLineRunner[lineSize] = '\0';
+            bigLineRunner += lineSize+1;
+        }
+    }
+
+    //check here if the bigLineRunner has all the lines
+    //DEBUG
+    /*for (int i = 0; i < lineIndex; i++) {
+        char * lineSegment = bigLine + tableOfLineStarts[i];
+        printf("%d:%s", i, lineSegment);
+    }*/
+    cudaError_t error = cudaSuccess;
+    
+    error = cudaMalloc((void **) device_line, size);
+    printf("%s\n", cudaGetErrorString(error));
+
+    //TODO: check for cudaMalloc errors
+    cudaMemcpy(device_line, bigLine, size, cudaMemcpyHostToDevice);
+
+    error = cudaMalloc((void **) device_table, sizeof(u32)*lineIndex);
+    printf("%s\n", cudaGetErrorString(error));
+
+    cudaMemcpy(device_table, tableOfLineStarts, sizeof(u32)*(lineIndex+1), cudaMemcpyHostToDevice);
+
+    free(tableOfLineStarts);
+    free(bigLine);
+
 }
 
 int
@@ -474,16 +510,17 @@ main(int argc, char **argv)
         endReadFile = CycleTimer::currentSeconds();
 
 		State *device_start;
-		char **device_lines;
+		char * device_line;
+        int * device_table;
 
 		
 		copyNFAToDevice(&device_start, start);	 
         endCopyNFAToDevice = CycleTimer::currentSeconds();
 		
-		copyStringsToDevice(lines, lineIndex, &device_lines);
+		copyStringsToDevice(lines, lineIndex, &device_line, &device_table);
         endCopyStringsToDevice = CycleTimer::currentSeconds();
 
-		pMatch(device_start, device_lines, lineIndex, nstate, time);		
+		pMatch(device_start, device_line, device_table, lineIndex, nstate, time);		
         endPMatch = CycleTimer::currentSeconds();
 
 		for (i = 0; i <= lineIndex; i++) 

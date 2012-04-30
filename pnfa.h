@@ -2,6 +2,8 @@
 #include "nfautil.h"
 #include "regex.h"
 
-void pMatch(State *start, char **lines, int lineIndex, int nstate, int time);
+typedef unsigned int u32;
+
+void pMatch(State *start, char * bigLine, int * tableOfLineStarts, int lineIndex, int nstate, int time);
 void printCudaInfo();
     
