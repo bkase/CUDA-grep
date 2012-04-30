@@ -150,16 +150,12 @@ __global__ void parallelMatch(State *start, char * bigLine, u32 * tableOfLineSta
 
 	int i;
 	for (i = blockIdx.x * blockDim.x + threadIdx.x; i < lineIndex; i += gridDim.x * blockDim.x) { 
-        PRINT(time, "i:%d\n", i);
-        PRINT(time, "%s\n", bigLine);
-        for (int j = 0; j < lineIndex; j++) {
-            PRINT(time, "table:%d\n", tableOfLineStarts[i]);
-        }
+       
         char * lineSegment = bigLine + tableOfLineStarts[i];
-        PRINT(time, "%s\n", lineSegment);
+        /*PRINT(time, "%s", lineSegment);*/
 
-        /* if (panypmatch(start, lineSegment, &d1, &d2)) 
-                    PRINT(time, "%s", linesSegment);*/
+        if (panypmatch(start, lineSegment, &d1, &d2)) 
+            PRINT(time, "%s", lineSegment);
 	}
 
 /*
