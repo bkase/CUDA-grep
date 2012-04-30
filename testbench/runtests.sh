@@ -3,7 +3,7 @@
 teststrings=(
 "ROMEO" "JULIET"
 #Test +*|
-"ROMEO|JULIET" "R+" "R*" "R" "R+R*" "R*R+" "RR+" "RR*" "R+|J+" "(R|J)ULIET" 
+"ROMEO|JULIET" "R+" "R*" "R" "R+R*" "R*R+" "RR+" "RR*" "R+|J+" "(R|J)ULIET" "R*" 
 #Test for the . wildcard
 "R..EO" "R..EO|...IET" "R..*"
 #Test for ranges

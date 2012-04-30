@@ -34,6 +34,32 @@ struct State
 };
 
 
+/*
+ * Since the out pointers in the list are always 
+ * uninitialized, we use the pointers themselves
+ * as storage for the Ptrlists.
+ */
+typedef union Ptrlist Ptrlist;
+union Ptrlist
+{
+	Ptrlist *next;
+	State *s;
+};
+
+
+/*
+ * A partially built NFA without the matching state filled in.
+ * Frag.start points at the start state.
+ * Frag.out is a list of places that need to be set to the
+ * next state for this fragment.
+ */
+typedef struct Frag Frag;
+struct Frag
+{
+	State *start;
+	Ptrlist *out;
+};
+
 typedef struct List List;
 struct List
 {

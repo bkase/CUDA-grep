@@ -52,19 +52,6 @@ state(int c, State *out, State *out1)
 	return s;
 }
 
-/*
- * A partially built NFA without the matching state filled in.
- * Frag.start points at the start state.
- * Frag.out is a list of places that need to be set to the
- * next state for this fragment.
- */
-typedef struct Frag Frag;
-typedef union Ptrlist Ptrlist;
-struct Frag
-{
-	State *start;
-	Ptrlist *out;
-};
 
 /* Initialize Frag struct. */
 	Frag
@@ -74,16 +61,6 @@ frag(State *start, Ptrlist *out)
 	return n;
 }
 
-/*
- * Since the out pointers in the list are always 
- * uninitialized, we use the pointers themselves
- * as storage for the Ptrlists.
- */
-union Ptrlist
-{
-	Ptrlist *next;
-	State *s;
-};
 
 /* Create singleton list containing just outp. */
 	Ptrlist*
@@ -413,6 +390,21 @@ main(int argc, char **argv)
         exit(0);
 	}
 
+	printf("CPU Postfix %s\n", post);
+	
+	char *device_post;
+	int postsize = (strlen(post) + 1) * sizeof (char);
+	cudaMalloc(&device_post, postsize); 
+	cudaMemcpy(device_post, post, postsize, cudaMemcpyHostToDevice);
+
+	 parallelNFA(device_post);
+	cudaThreadSynchronize();	
+	
+	exit(0);
+//
+// DONE ... 
+//
+//
 	start = post2nfa(post);
 	if(start == NULL){
 		fprintf(stderr, "error in post2nfa %s\n", post);

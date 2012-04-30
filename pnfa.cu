@@ -140,13 +140,7 @@ __device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2) {
 __global__ void parallelMatch(State *start, char **lines, int lineIndex, int nstate, int time) {
 	List d1;
 	List d2;	
-/*
-	int i;
-	for (i = blockIdx.x * gridDim.x; i < lineIndex && i < (blockIdx.x +1) * gridDim.x; i +=1) { 
-		if (panypmatch(start, lines[i], &d1, &d2)) 
-			PRINT(time, "%s", lines[i]);
-	}
-*/
+
 
 	int i;
 	for (i = blockIdx.x * blockDim.x + threadIdx.x; i < lineIndex; i += gridDim.x * blockDim.x) { 
