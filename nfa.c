@@ -52,19 +52,6 @@ state(int c, State *out, State *out1)
 	return s;
 }
 
-/*
- * A partially built NFA without the matching state filled in.
- * Frag.start points at the start state.
- * Frag.out is a list of places that need to be set to the
- * next state for this fragment.
- */
-typedef struct Frag Frag;
-typedef union Ptrlist Ptrlist;
-struct Frag
-{
-	State *start;
-	Ptrlist *out;
-};
 
 /* Initialize Frag struct. */
 	Frag
@@ -74,16 +61,6 @@ frag(State *start, Ptrlist *out)
 	return n;
 }
 
-/*
- * Since the out pointers in the list are always 
- * uninitialized, we use the pointers themselves
- * as storage for the Ptrlists.
- */
-union Ptrlist
-{
-	Ptrlist *next;
-	State *s;
-};
 
 /* Create singleton list containing just outp. */
 	Ptrlist*
@@ -447,6 +424,13 @@ main(int argc, char **argv)
         exit(0);
 	}
 
+	char *device_post;
+	int postsize = (strlen(post) + 1) * sizeof (char);
+	cudaMalloc(&device_post, postsize); 
+	cudaMemcpy(device_post, post, postsize, cudaMemcpyHostToDevice);
+
+
+
 	start = post2nfa(post);
 	if(start == NULL){
 		fprintf(stderr, "error in post2nfa %s\n", post);
@@ -518,7 +502,7 @@ main(int argc, char **argv)
 		copyStringsToDevice(lines, lineIndex, &device_line, &device_table);
         endCopyStringsToDevice = CycleTimer::currentSeconds();
 
-		pMatch(device_start, device_line, device_table, lineIndex, nstate, time);		
+		pMatch(device_start, device_line, device_table, lineIndex, nstate, time, device_post);
         endPMatch = CycleTimer::currentSeconds();
 
 		for (i = 0; i <= lineIndex; i++) 
