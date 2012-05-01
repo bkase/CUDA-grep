@@ -8,10 +8,6 @@
 
 #include "pnfa.h"
 
-__device__ State *states;
-__device__ static int pnstate;
-__device__ State pmatchstate = { Match };	/* matching state */
-
 
 /* Allocate and initialize State */
 __device__ inline State* pstate(int c, State *out, State *out1)

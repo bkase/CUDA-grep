@@ -390,21 +390,13 @@ main(int argc, char **argv)
         exit(0);
 	}
 
-	printf("CPU Postfix %s\n", post);
-	
 	char *device_post;
 	int postsize = (strlen(post) + 1) * sizeof (char);
 	cudaMalloc(&device_post, postsize); 
 	cudaMemcpy(device_post, post, postsize, cudaMemcpyHostToDevice);
 
-	 parallelNFA(device_post);
-	cudaThreadSynchronize();	
-	
-	exit(0);
-//
-// DONE ... 
-//
-//
+
+
 	start = post2nfa(post);
 	if(start == NULL){
 		fprintf(stderr, "error in post2nfa %s\n", post);
@@ -475,7 +467,7 @@ main(int argc, char **argv)
 		copyStringsToDevice(lines, lineIndex, &device_lines);
         endCopyStringsToDevice = CycleTimer::currentSeconds();
 
-		pMatch(device_start, device_lines, lineIndex, nstate, time);		
+		pMatch(device_start, device_lines, lineIndex, nstate, time, device_post);		
         endPMatch = CycleTimer::currentSeconds();
 
 		for (i = 0; i <= lineIndex; i++) 
