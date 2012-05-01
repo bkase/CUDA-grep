@@ -28,7 +28,7 @@ do
 	for ((i=0; i<len; i++))
 	do
 		testcase=${teststrings[$i]}
-		if diff <(../nfa -f $file $testcase) <(egrep $testcase $file) >> RESULTS; then
+		if diff <(sort <(../nfa -f $file $testcase)) <(sort <(egrep $testcase $file)) >> RESULTS; then
 			cat /dev/null
 		else
 			pass=0
