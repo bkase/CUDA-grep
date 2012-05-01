@@ -358,14 +358,14 @@ copyStringsToDevice(char **lines, int lineIndex, char ** device_line, u32 ** dev
         char * lineSegment = bigLine + tableOfLineStarts[i];
         printf("%d:%s", i, lineSegment);
     }*/
-    cudaError_t error = cudaSuccess;
+    //cudaError_t error = cudaSuccess;
     
-    error = cudaMalloc((void **) device_line, size);
+    //error = cudaMalloc((void **) device_line, size);
 
     //TODO: check for cudaMalloc errors
     cudaMemcpy(*device_line, bigLine, size, cudaMemcpyHostToDevice);
 
-    error = cudaMalloc((void **) device_table, sizeof(u32)*(lineIndex+1));
+    //error = cudaMalloc((void **) device_table, sizeof(u32)*(lineIndex+1));
 
     cudaMemcpy(*device_table, tableOfLineStarts, sizeof(u32)*(lineIndex+1), cudaMemcpyHostToDevice);
 
