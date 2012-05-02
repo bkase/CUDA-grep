@@ -14,19 +14,19 @@
 #define POP(l) l->s[l->n]; 
 
 
-__device__ static int dlistid;
-__device__ inline void paddstate(List*, State*, List*);
-__device__ inline void pstep(List*, int, List*);
+
+__device__ inline void paddstate(List*, State*, List*, int *);
+__device__ inline void pstep(List*, int, List*, int *);
 
 /* Compute initial state list */
 __device__ inline List*
-pstartlist(State *start, List *l)
+pstartlist(State *start, List *l, int *dlistid)
 {
 	l->n = 0;
-	dlistid++;
+	(*dlistid)++;
 
 	List addStartState;
-	paddstate(l, start, &addStartState);
+	paddstate(l, start, &addStartState, dlistid);
 	return l;
 }
 
@@ -45,7 +45,7 @@ ispmatch(List *l)
 
 /* Add s to l, following unlabeled arrows. */
 	__device__ inline void
-paddstate(List *l, State *s, List *addStateList)
+paddstate(List *l, State *s, List *addStateList, int *dlistid)
 {	
 	addStateList->n = 0;
 	PUSH(addStateList, s);
@@ -58,14 +58,14 @@ paddstate(List *l, State *s, List *addStateList)
 		// lastlist check is present to ensure that if
 		// multiple states point to this state, then only
 		//one instance of the state is added to the list
-		if(s == NULL || s->lastlist == dlistid);
+		if(s == NULL);
 		else if (s->c == 257) {
-			s->lastlist = dlistid; 
+			s->lastlist = *dlistid; 
 			PUSH(addStateList, s->out);
 			PUSH(addStateList, s->out1);	
 		}
 		else {
-			s->lastlist = dlistid; 
+			s->lastlist = *dlistid; 
 			l->s[l->n++] = s;
 		}
 	}
@@ -77,34 +77,34 @@ paddstate(List *l, State *s, List *addStateList)
  * to create next NFA state set nlist.
  */
 __device__ inline void
-pstep(List *clist, int c, List *nlist)
+pstep(List *clist, int c, List *nlist, int *dlistid)
 {
 	int i;
 	State *s;
-	dlistid++;
+	(*dlistid)++;
 	nlist->n = 0;
 	for(i=0; i<clist->n; i++){
 		s = clist->s[i];
 	
 		if(s->c == c || s->c == Any){
 			List addStartState;
-			paddstate(nlist, s->out, &addStartState);
+			paddstate(nlist, s->out, &addStartState, dlistid);
 		}
 	}
 }
 
 /* Run NFA to determine whether it matches s. */
 __device__ inline int
-pmatch(State *start, char *s, List *dl1, List *dl2)
+pmatch(State *start, char *s, List *dl1, List *dl2, int * dlistid)
 {
 	int c;
 	List *clist, *nlist, *t;
 
-	clist = pstartlist(start, dl1);
+	clist = pstartlist(start, dl1, dlistid);
 	nlist = dl2;
 	for(; *s; s++){
 		c = *s & 0xFF;
-		pstep(clist, c, nlist);
+		pstep(clist, c, nlist, dlistid);
 		t = clist; clist = nlist; nlist = t;	// swap clist, nlist 
 	
 		// check for a match in the middle of the string
@@ -116,8 +116,8 @@ pmatch(State *start, char *s, List *dl1, List *dl2)
 }
 
 /* Check for a string match at all possible start positions */
-__device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2) { 
-	int isMatch = pmatch(start, s, dl1, dl2);
+__device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2, int *dlistid) { 
+	int isMatch = pmatch(start, s, dl1, dl2, dlistid);
 	int index = 0;
 	int len = 0; 
 	char * sc = s;
@@ -127,7 +127,7 @@ __device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2) {
 	}
 	
 	while (!isMatch && index < len) {
-		isMatch = pmatch(start, s + index, dl1, dl2);
+		isMatch = pmatch(start, s + index, dl1, dl2, dlistid);
 		index ++;
 	}
 	return isMatch;
@@ -288,6 +288,8 @@ __global__ void parallelMatch(State *start, char * bigLine, u32 * tableOfLineSta
 
 	List d1;
 	List d2;	
+	int dlistid;
+
 
 	int i;
 	for (i = blockIdx.x * blockDim.x + threadIdx.x; i < lineIndex; i += gridDim.x * blockDim.x) { 
@@ -295,18 +297,17 @@ __global__ void parallelMatch(State *start, char * bigLine, u32 * tableOfLineSta
         char * lineSegment = bigLine + tableOfLineStarts[i];
         /*PRINT(time, "i:%d\n", tableOfLineStarts[i]);*/
 
-        if (panypmatch(start, lineSegment, &d1, &d2)) 
+        if (panypmatch(start, lineSegment, &d1, &d2, &dlistid)) 
             PRINT(time, "%s", lineSegment);
-	}
 	
+	}
 }
 
 void pMatch(State *start, char * bigLine, u32 * tableOfLineStarts, int lineIndex, int nstate, int time, char * postfix) {
-		//printCudaInfo(); 
-    
-	parallelMatch<<<1,1>>>(start,bigLine,tableOfLineStarts, lineIndex, nstate ,time, postfix);
 
-    cudaThreadSynchronize();
+	parallelMatch<<<256, 256>>>(start, bigLine, tableOfLineStarts, lineIndex, nstate ,time, postfix);
+	
+	cudaThreadSynchronize();
 
 	//TODO free states
     cudaError_t error = cudaGetLastError();
