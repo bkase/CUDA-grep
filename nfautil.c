@@ -171,11 +171,11 @@ copyStringsToDevice(char **lines, int numLines, char ** device_line, u32 ** devi
         int lineSize = (tableOfLineStarts[i+1] - tableOfLineStarts[i]) - 1;
         if (lineSize != 0) {
             memcpy(bigLineRunner, lines[i], lineSize);
-            bigLineRunner[lineSize] = '\0';
-            bigLineRunner += lineSize+1;
+            bigLineRunner[lineSize] = 0;
+            bigLineRunner += lineSize + 1;
         }
     }
- 
+
     cudaMalloc((void **) device_line, size);
 
     //TODO: check for cudaMalloc errors
@@ -463,7 +463,7 @@ void usage(const char* progname) {
 	printf("  -? This message\n");
 }
 
-void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fileName, int *time, int *simplified) {
+void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fileName, int *time, int *simplified, char **regexFile) {
 	if (argc < 3) {
 		usage(argv[0]);
 		exit(EXIT_SUCCESS);
@@ -476,6 +476,7 @@ void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fi
         {"simplified",     no_argument, 0,  's'}, 
 		{"visualize",    no_argument, 0,  'v'},
 		{"file",     required_argument, 0,  'f'},
+		{"regex",     required_argument, 0,  'r'},
 		{"time",     no_argument, 0,  't'},
 		{0 ,0, 0, 0}
     };
@@ -484,7 +485,7 @@ void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fi
 	*postfix = 0;
 	*time = 0;
     *simplified = 0;
-    while ((opt = getopt_long_only(argc, argv, "tvpsf:?", long_options, NULL)) != EOF) {
+    while ((opt = getopt_long_only(argc, argv, "tvpsf:r:?", long_options, NULL)) != EOF) {
 
         switch (opt) {
             case 'v':
@@ -499,7 +500,11 @@ void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fi
                 *fileName = optarg; 
                 break;
 
-            case 't':
+            case 'r':
+                *regexFile = optarg; 
+                break;
+  
+  			case 't':
                 *time = 1;
                 break;
 

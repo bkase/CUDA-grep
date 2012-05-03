@@ -21,6 +21,7 @@ main(int argc, char **argv)
 {	
 	int visualize, simplified, postfix, i, time, parallel = 1;
 	char *fileName = NULL;
+	char *regexFile = NULL;
 	char *post;
     SimpleReBuilder builder;
 	State *start;
@@ -28,7 +29,7 @@ main(int argc, char **argv)
 	char **lines;
 	int numLines;
 
-	parseCmdLine(argc, argv, &visualize, &postfix, &fileName, &time, &simplified);
+	parseCmdLine(argc, argv, &visualize, &postfix, &fileName, &time, &simplified, &regexFile);
 
 	// argv index at which regex is present
 	int optIndex = 1 + visualize + postfix + time + simplified;
@@ -123,25 +124,56 @@ main(int argc, char **argv)
 			printf("Enter a file \n");
 			exit(EXIT_SUCCESS);
 		}
+		if (regexFile == NULL) {
+			simplifyRe(argv[optIndex], &builder);
+	
+			char *device_regex;
+			int postsize = (strlen(builder.re) + 1) * sizeof (char);
+			cudaMalloc((void **) &device_regex, postsize); 
+			cudaMemcpy(device_regex, builder.re, postsize, cudaMemcpyHostToDevice);	
 		
-	    simplifyRe(argv[optIndex], &builder);
-	
-		char *device_regex;
-		int postsize = (strlen(builder.re) + 1) * sizeof (char);
-		cudaMalloc((void **) &device_regex, postsize); 
-		cudaMemcpy(device_regex, builder.re, postsize, cudaMemcpyHostToDevice);	
-	
-		startTime = CycleTimer::currentSeconds();	
-		readFile(fileName, &lines, &numLines); 	 
-    	endReadFile = CycleTimer::currentSeconds();
+			startTime = CycleTimer::currentSeconds();	
+			readFile(fileName, &lines, &numLines); 	 
+			endReadFile = CycleTimer::currentSeconds();
 
-		char * device_line;
-        u32 * device_table;
-		copyStringsToDevice(lines, numLines, &device_line, &device_table);
-        endCopyStringsToDevice = CycleTimer::currentSeconds();
+			char * device_line;
+			u32 * device_table;
+			copyStringsToDevice(lines, numLines, &device_line, &device_table);
+			endCopyStringsToDevice = CycleTimer::currentSeconds();
 
-		pMatch(device_line, device_table, numLines, time, device_regex, lines);
-        endPMatch = CycleTimer::currentSeconds();
+			u32 numRegexes = 1;
+			pMatch(device_line, device_table, numLines, time, device_regex, &numRegexes, lines);
+			endPMatch = CycleTimer::currentSeconds();
+		}
+		else {
+			char **regexs;
+			int numRegexs;
+			readFile(regexFile, &regexs, &numRegexs); 	 
+			readFile(fileName, &lines, &numLines); 	 
+		
+			for (int i = 0; i < numRegexs; i ++) {
+				// get rid of the new line
+				regexs[i][strlen(regexs[i]) - 1] = 0;
+				
+				simplifyRe(regexs[i], &builder);
+				regexs[i] = builder.re;
+			}
+		
+			char * device_line;
+			u32 * device_table;
+			copyStringsToDevice(lines, numLines, &device_line, &device_table);
+	
+			char * deviceRegexLine;
+			u32 * deviceRegexTable;
+			copyStringsToDevice(regexs, 1, &deviceRegexLine, &deviceRegexTable);
+	
+
+			endCopyStringsToDevice = CycleTimer::currentSeconds();
+
+			pMatch(device_line, device_table, numLines, time, deviceRegexLine, deviceRegexTable, lines);
+			endPMatch = CycleTimer::currentSeconds();
+		
+		}
 
 		for (i = 0; i <= numLines; i++) 
 			free(lines[i]);

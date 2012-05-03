@@ -211,9 +211,10 @@ __device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2, in
 	return isMatch;
 }
 
-__global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int time, char *regex, unsigned char * devResult) {
+__global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int time, char *regexLines, u32 *regexTable, unsigned char * devResult) {
 
-	pre2post(regex);
+	pre2post(regexLines);
+
 	char *postfix = buf;
 	
 	State s[100];
@@ -239,12 +240,12 @@ __global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int numLi
 	}
 }
 
-void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int time, char * postfix, char **lines) {
+void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int time, char * regexLines, u32 *regexTable, char **lines) {
 
 	unsigned char *devResult;
 	cudaMalloc(&devResult, numLines * sizeof(unsigned char));
-	
-	parallelMatch<<<256, 256>>>(bigLine, tableOfLineStarts, numLines, time, postfix, devResult);
+
+	parallelMatch<<<1, 1>>>(bigLine, tableOfLineStarts, numLines, time, regexLines, regexTable, devResult);
 	cudaThreadSynchronize();
 
     cudaError_t error = cudaGetLastError();
@@ -255,11 +256,14 @@ void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int time, cha
 
 	unsigned char *hostResult = (unsigned char *) malloc (numLines * sizeof(unsigned char));
 	cudaMemcpy(hostResult, devResult, numLines * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+
 	for (int i = 0; i < numLines; i++) {
 		if(hostResult[i] == 1) 
 			PRINT(time, "%s", lines[i]);
+		else 
+			PRINT(time, "%s", lines[i]);
 	}
-
+	
 	cudaFree(&devResult);
 	cudaFree(&bigLine);
     cudaFree(&tableOfLineStarts);
