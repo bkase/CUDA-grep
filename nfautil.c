@@ -138,16 +138,6 @@ void usage(const char* progname) {
 	printf("  -? This message\n");
 }
 
-// free all states except Match which is statically allocated
-void freeNFAStates(State *s) {
-	if (s != NULL && s->c != Match && s->free != 1) {	
-		s->free = 1;
-		freeNFAStates(s->out);
-		freeNFAStates(s->out1);
-		free(s);
-	}
-}
-
 void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fileName, int *time, int *simplified) {
 	if (argc < 3) {
 		usage(argv[0]);

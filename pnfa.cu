@@ -278,13 +278,13 @@ ppost2nfa(char *postfix)
 
 
 
-__global__ void parallelMatch(State *start, char * bigLine, u32 * tableOfLineStarts, int lineIndex, int nstate, int time, char *postfix) {
+__global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int lineIndex, int nstate, int time, char *postfix, unsigned char * devResult) {
 
 	State s[100];
 	pnstate = 0;
 	states = s;
 
-	start = ppost2nfa(postfix);
+	State *st = ppost2nfa(postfix);
 
 	List d1;
 	List d2;	
@@ -295,17 +295,20 @@ __global__ void parallelMatch(State *start, char * bigLine, u32 * tableOfLineSta
 	for (i = blockIdx.x * blockDim.x + threadIdx.x; i < lineIndex; i += gridDim.x * blockDim.x) { 
        
         char * lineSegment = bigLine + tableOfLineStarts[i];
-        /*PRINT(time, "i:%d\n", tableOfLineStarts[i]);*/
 
-        if (panypmatch(start, lineSegment, &d1, &d2, &dlistid)) 
-            PRINT(time, "%s", lineSegment);
-	
+        if (panypmatch(st, lineSegment, &d1, &d2, &dlistid)) 
+			devResult[i] = 1;
+		else
+			devResult[i] = 0;
 	}
 }
 
-void pMatch(State *start, char * bigLine, u32 * tableOfLineStarts, int lineIndex, int nstate, int time, char * postfix) {
+void pMatch(char * bigLine, u32 * tableOfLineStarts, int lineIndex, int nstate, int time, char * postfix, char **lines) {
 
-	parallelMatch<<<256, 256>>>(start, bigLine, tableOfLineStarts, lineIndex, nstate ,time, postfix);
+	unsigned char *devResult;
+	cudaMalloc(&devResult, lineIndex * sizeof(unsigned char));
+	
+	parallelMatch<<<256, 256>>>(bigLine, tableOfLineStarts, lineIndex, nstate ,time, postfix, devResult);
 	
 	cudaThreadSynchronize();
 
@@ -315,6 +318,13 @@ void pMatch(State *start, char * bigLine, u32 * tableOfLineStarts, int lineIndex
         printf("CUDA Error: %s\n", cudaGetErrorString(error));
         exit(-1);
     }
+
+	unsigned char *hostResult = (unsigned char *) malloc (lineIndex * sizeof(unsigned char));
+	cudaMemcpy(hostResult, devResult, lineIndex * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+	for (int i = 0; i < lineIndex; i++) {
+		if(hostResult[i] == 1) 
+			printf("%s", lines[i]);
+	}
 
 	cudaFree(&bigLine);
     cudaFree(&tableOfLineStarts);

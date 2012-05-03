@@ -316,18 +316,6 @@ copyStateToDevice(State **device_start, State *out, int pos) {
 }
 
 void 
-copyNFAToDevice(State **device_start, State *start) {
-	start->free = STATE_COPIED;
-
-	cudaMalloc((void **) device_start, sizeof (State));
-	cudaMemcpy(*device_start, start, sizeof (State), cudaMemcpyHostToDevice);
-	
-	start->dev = *device_start;
-	copyStateToDevice(device_start, start->out, 0);
-	copyStateToDevice(device_start, start->out1, 1);
-}
-
-void 
 copyStringsToDevice(char **lines, int lineIndex, char ** device_line, u32 ** device_table) {
     
     //TODO: Is it more efficient to do this in two passes or to realloc a bunch of times
@@ -351,15 +339,7 @@ copyStringsToDevice(char **lines, int lineIndex, char ** device_line, u32 ** dev
             bigLineRunner += lineSize+1;
         }
     }
-
-    //check here if the bigLineRunner has all the lines
-    //DEBUG
-    /*for (int i = 0; i < lineIndex; i++) {
-        char * lineSegment = bigLine + tableOfLineStarts[i];
-        printf("%d:%s", i, lineSegment);
-    }*/
-    //cudaError_t error = cudaSuccess;
-    
+ 
     cudaMalloc((void **) device_line, size);
 
     //TODO: check for cudaMalloc errors
@@ -381,7 +361,7 @@ main(int argc, char **argv)
 	char *post;
     SimpleReBuilder builder;
 	State *start;
-	double startTime, endTime, endReadFile, endCopyNFAToDevice, endCopyStringsToDevice, endPMatch; 
+	double startTime, endTime, endReadFile, endCopyStringsToDevice, endPMatch; 
 	char **lines;
 	int lineIndex;
 
@@ -429,7 +409,6 @@ main(int argc, char **argv)
 	cudaMemcpy(device_post, post, postsize, cudaMemcpyHostToDevice);
 
 
-
 	start = post2nfa(post);
 	if(start == NULL){
 		fprintf(stderr, "error in post2nfa %s\n", post);
@@ -440,12 +419,7 @@ main(int argc, char **argv)
 		visualize_nfa(start);
         exit(0);
 	}
-
-	//l1.s = (State **) malloc(nstate*sizeof (State *));
-	//l2.s = (State **) malloc(nstate*sizeof (State *));
-
-	fflush(stdout); // flush stdout before getting start time
-
+	
 	// sequential matching
 	if (parallel != 1) {
 
@@ -459,18 +433,25 @@ main(int argc, char **argv)
             endTime = CycleTimer::currentSeconds();
 		}
 		else {
+			startTime = CycleTimer::currentSeconds();
+		
 			readFile(fileName, &lines, &lineIndex); 	
 
-            startTime = CycleTimer::currentSeconds();
+            unsigned char result[lineIndex];
+
 			for (i = 0; i < lineIndex; i++) { 
 				if (anyMatch(start, lines[i]))  
-					
-				
-					//TODO need to put this statement out side loop body
-					printf("%s", lines[i]);
+					result[i] = 1;
+				else
+					result[i] = 0;
 			}
             endTime = CycleTimer::currentSeconds();
-		
+	
+			for ( i = 0; i < lineIndex; i++) {
+				if(result[i] == 1)
+					printf("%s", lines[i]);
+			}
+
 			for (i = 0; i <= lineIndex; i++) 
 			free(lines[i]);
 			free(lines);
@@ -490,18 +471,13 @@ main(int argc, char **argv)
 		readFile(fileName, &lines, &lineIndex); 	 
         endReadFile = CycleTimer::currentSeconds();
 
-		State *device_start;
 		char * device_line;
         u32 * device_table;
-
-		
-		copyNFAToDevice(&device_start, start);	 
-        endCopyNFAToDevice = CycleTimer::currentSeconds();
 		
 		copyStringsToDevice(lines, lineIndex, &device_line, &device_table);
         endCopyStringsToDevice = CycleTimer::currentSeconds();
 
-		pMatch(device_start, device_line, device_table, lineIndex, nstate, time, device_post);
+		pMatch(device_line, device_table, lineIndex, nstate, time, device_post, lines);
         endPMatch = CycleTimer::currentSeconds();
 
 		for (i = 0; i <= lineIndex; i++) 
@@ -515,15 +491,12 @@ main(int argc, char **argv)
 	}
     else if (time && parallel) {
 		printf("\nParallel ReadFile Time taken %.4f \n", (endReadFile - startTime));
-		printf("\nParallel CopyNFAToDevice Time taken %.4f \n", (endCopyNFAToDevice - endReadFile));
-		printf("\nParallel CopyStringsToDevice Time taken %.4f \n", (endCopyStringsToDevice - endCopyNFAToDevice));
+		printf("\nParallel CopyStringsToDevice Time taken %.4f \n", (endCopyStringsToDevice - endReadFile));
 		printf("\nParallel pMatch Time taken %.4f \n\n", (endPMatch - endCopyStringsToDevice));
 		printf("\nParallel Total Time taken %.4f \n\n", (endPMatch - startTime));
     }
-	// free up memory
-	freeNFAStates(start);		
 
-		return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
 
