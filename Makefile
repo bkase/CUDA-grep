@@ -11,10 +11,10 @@ all: nfa nfa_debug
 clean: 
 	rm -rf nfa nfa_debug *.o
 
-nfa: pnfa.cu nfautil.c nfa.c regex.c
-	$(NVCC) $(CFLAGS) pnfa.cu nfa.c nfautil.c regex.c -o nfa
+nfa: pnfa.cu putil.cu nfautil.c nfa.c regex.c
+	$(NVCC) $(CFLAGS) pnfa.cu putil.cu nfa.c nfautil.c regex.c -o nfa
 
-nfa_debug: pnfa.cu nfa.c nfautil.c regex.c
-	$(NVCC) $(CFLAGS_DEBUG) pnfa.cu nfa.c nfautil.c regex.c -o nfa_debug
+nfa_debug: pnfa.cu putil.cu nfa.c nfautil.c regex.c
+	$(NVCC) $(CFLAGS_DEBUG) pnfa.cu putil.cu nfa.c nfautil.c regex.c -o nfa_debug
 
 

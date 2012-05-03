@@ -1,12 +1,16 @@
-
-
 #include <stdio.h>
-
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <driver_functions.h>
 
 #include "pnfa.h"
+
+__device__ inline State* pstate(int , State *, State *);
+__device__ inline Frag pfrag(State *, Ptrlist *);
+__device__ inline Ptrlist* plist1(State **);
+__device__ inline void ppatch(Ptrlist *, State *);
+__device__ inline Ptrlist* pappend(Ptrlist *, Ptrlist *);
+__device__ inline State* ppost2nfa(char *);
 
 
 /* Allocate and initialize State */
@@ -147,30 +151,25 @@ ppost2nfa(char *postfix)
 #undef pop
 #undef push
 }
-
-__global__ void parallelNFAKernel(char *postfix) {
-
-	State s[100];
-	
-	pnstate = 0;
-	states = s;
-
-	printf("Begun \n");
-	printf("Postfix %s\n", postfix);
-	
-	State *start = ppost2nfa(postfix);
-
-	printf("done\n");
-	printf("start %c\n", start->c);
-	printf("start %c\n", start->out->c);
-	printf("start %c\n", start->out->out->c);
-	printf("start %c\n", start->out->out->out->c);
-	printf("start %c\n", start->out->out->out->out->c);
-	
-}
-
-void parallelNFA(char *postfix) {
-	
-	parallelNFAKernel<<<1,1>>>(postfix);	
+/*
+// taken from 15-418 assignment 2
+void
+printCudaInfo() {
+    
+    int deviceCount = 0;
+    cudaError_t err = cudaGetDeviceCount(&deviceCount);
+    
+    printf("Found %d CUDA devices\n", deviceCount);
+    
+    for (int i=0; i<deviceCount; i++) {
+        cudaDeviceProp deviceProps;
+        cudaGetDeviceProperties(&deviceProps, i);
+        printf("Device %d: %s\n", i, deviceProps.name);
+        printf("   SMs:        %d\n", deviceProps.multiProcessorCount);
+        printf("   Global mem: %.0f MB\n",
+               static_cast<float>(deviceProps.totalGlobalMem) / (1024 * 1024));
+        printf("   CUDA Cap:   %d.%d\n", deviceProps.major, deviceProps.minor);
+    }
 
 }
+*/
