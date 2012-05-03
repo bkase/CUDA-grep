@@ -245,7 +245,7 @@ void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int time, cha
 	unsigned char *devResult;
 	cudaMalloc(&devResult, numLines * sizeof(unsigned char));
 
-	parallelMatch<<<1, 1>>>(bigLine, tableOfLineStarts, numLines, time, regexLines, regexTable, devResult);
+	parallelMatch<<<256, 256>>>(bigLine, tableOfLineStarts, numLines, time, regexLines, regexTable, devResult);
 	cudaThreadSynchronize();
 
     cudaError_t error = cudaGetLastError();

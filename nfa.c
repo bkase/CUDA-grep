@@ -16,34 +16,32 @@
 #include "pnfa.h"
 #include "cycleTimer.h"
 
-int
-main(int argc, char **argv)
-{	
-	int visualize, simplified, postfix, i, time, parallel = 1;
-	char *fileName = NULL;
-	char *regexFile = NULL;
-	char *post;
-    SimpleReBuilder builder;
-	State *start;
-	double startTime, endTime, endReadFile, endCopyStringsToDevice, endPMatch; 
-	char **lines;
-	int numLines;
+char *post;
 
-	parseCmdLine(argc, argv, &visualize, &postfix, &fileName, &time, &simplified, &regexFile);
+int checkCmdLine(int argc, char **argv, char **fileName, char **regexFile, int *time) {
+	int visualize, simplified, postfix;
+	SimpleReBuilder builder;
+	State *start;
+
+	parseCmdLine(argc, argv, &visualize, &postfix, time, &simplified, fileName, regexFile);
 
 	// argv index at which regex is present
-	int optIndex = 1 + visualize + postfix + time + simplified;
+	int regexIndex = 1 + visualize + postfix + *time + simplified;
 	if (fileName != NULL)
-		optIndex += 2;
+		regexIndex += 2;
 
-	if (argc <= optIndex) {
+	if (argc <= regexIndex) {
 		usage (argv[0]);
 		exit(EXIT_SUCCESS);
 	}
 
-    simplifyRe(argv[optIndex], &builder);
+    simplifyRe(argv[regexIndex], &builder);
 
     post = re2post(builder.re);
+	if(post == NULL){
+		fprintf(stderr, "bad regexp %s\n", argv[regexIndex]);
+		return 1;
+	}
 
     if (simplified == 1) {
         char * clean_simplified = stringify(builder.re);
@@ -54,11 +52,6 @@ main(int argc, char **argv)
 
     /* destruct the simpleRe */
     _simpleReBuilder(&builder);
-
-	if(post == NULL){
-		fprintf(stderr, "bad regexp %s\n", argv[optIndex]);
-		return 1;
-	}
 
     if (postfix == 1) {
         char * clean_post = stringify(post);
@@ -73,6 +66,24 @@ main(int argc, char **argv)
         exit(0);
 	}
 
+	return regexIndex;
+	
+}
+
+
+int
+main(int argc, char **argv)
+{	
+	int i, timerOn, parallel = 1;
+	char *fileName = NULL, *regexFile = NULL, **lines = NULL, **regexs = NULL; 
+	int numLines, numRegexs;
+			
+	SimpleReBuilder builder;
+	State *start;
+	double startTime, endTime, endReadFile, endCopyStringsToDevice, endPMatch; 
+
+	int regexIndex = checkCmdLine(argc, argv, &fileName, &regexFile, &timerOn);
+	
 	// sequential matching
 	if (parallel != 1) {
 		
@@ -85,25 +96,24 @@ main(int argc, char **argv)
 		// if no file is specified
 		if (fileName == NULL) {
             startTime = CycleTimer::currentSeconds();
-			for(i=optIndex+1; i<argc; i++) {
+			for(i=regexIndex+1; i<argc; i++) {
 				if(anyMatch(start, argv[i]))
-					printf("%d: %s\n", i-(optIndex), argv[i]);
+					printf("%d: %s\n", i-(regexIndex), argv[i]);
 			}
             endTime = CycleTimer::currentSeconds();
 		}
 		else {
 			startTime = CycleTimer::currentSeconds();
-		
+			
 			readFile(fileName, &lines, &numLines); 	
-
             unsigned char result[numLines];
-
 			for (i = 0; i < numLines; i++) { 
 				if (anyMatch(start, lines[i]))  
 					result[i] = 1;
 				else
 					result[i] = 0;
 			}
+
             endTime = CycleTimer::currentSeconds();
 	
 			for ( i = 0; i < numLines; i++) {
@@ -111,9 +121,6 @@ main(int argc, char **argv)
 					printf("%s", lines[i]);
 			}
 
-			for (i = 0; i <= numLines; i++) 
-			free(lines[i]);
-			free(lines);
 		}
 
 	}
@@ -124,8 +131,10 @@ main(int argc, char **argv)
 			printf("Enter a file \n");
 			exit(EXIT_SUCCESS);
 		}
+		
+		// match just a single regex
 		if (regexFile == NULL) {
-			simplifyRe(argv[optIndex], &builder);
+			simplifyRe(argv[regexIndex], &builder);
 	
 			char *device_regex;
 			int postsize = (strlen(builder.re) + 1) * sizeof (char);
@@ -142,48 +151,60 @@ main(int argc, char **argv)
 			endCopyStringsToDevice = CycleTimer::currentSeconds();
 
 			u32 numRegexes = 1;
-			pMatch(device_line, device_table, numLines, time, device_regex, &numRegexes, lines);
+			pMatch(device_line, device_table, numLines, timerOn, device_regex, &numRegexes, lines);
 			endPMatch = CycleTimer::currentSeconds();
 		}
+		// match a bunch of regexs
 		else {
-			char **regexs;
-			int numRegexs;
+			startTime = CycleTimer::currentSeconds();	
 			readFile(regexFile, &regexs, &numRegexs); 	 
 			readFile(fileName, &lines, &numLines); 	 
-		
+			endReadFile = CycleTimer::currentSeconds();
+
+	
 			for (int i = 0; i < numRegexs; i ++) {
 				// get rid of the new line
 				regexs[i][strlen(regexs[i]) - 1] = 0;
-				
+			
 				simplifyRe(regexs[i], &builder);
 				regexs[i] = builder.re;
 			}
 		
 			char * device_line;
 			u32 * device_table;
-			copyStringsToDevice(lines, numLines, &device_line, &device_table);
-	
 			char * deviceRegexLine;
 			u32 * deviceRegexTable;
-			copyStringsToDevice(regexs, 1, &deviceRegexLine, &deviceRegexTable);
-	
+		
+			copyStringsToDevice(lines, numLines, &device_line, &device_table);	
+			copyStringsToDevice(regexs, 1, &deviceRegexLine, &deviceRegexTable);	
 
 			endCopyStringsToDevice = CycleTimer::currentSeconds();
 
-			pMatch(device_line, device_table, numLines, time, deviceRegexLine, deviceRegexTable, lines);
+			pMatch(device_line, device_table, numLines, timerOn, deviceRegexLine, deviceRegexTable, lines);
 			endPMatch = CycleTimer::currentSeconds();
 		
 		}
+	
+	}
 
-		for (i = 0; i <= numLines; i++) 
+	// free allocations
+	if (lines != NULL) {
+		for (i = 0; i < numLines; i++) 
 			free(lines[i]);
 		free(lines);
 	}
 
-	if (time && !parallel) {
+	if (regexs != NULL) {
+		for (int i = 0; i < numRegexs; i++) 
+			free(regexs[i]);
+		free(regexs);
+	}
+
+	// print timing details
+	if (timerOn && !parallel) {
 		printf("\nSequential Time taken %.4f \n\n", (endTime - startTime));
 	}
-    else if (time && parallel) {
+    else if (timerOn && parallel) {
 		printf("\nParallel ReadFile Time taken %.4f \n", (endReadFile - startTime));
 		printf("\nParallel CopyStringsToDevice Time taken %.4f \n", (endCopyStringsToDevice - endReadFile));
 		printf("\nParallel pMatch Time taken %.4f \n\n", (endPMatch - endCopyStringsToDevice));
