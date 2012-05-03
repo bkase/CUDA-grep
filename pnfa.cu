@@ -3,6 +3,102 @@
 __device__ inline void paddstate(List*, State*, List*, int *);
 __device__ inline void pstep(List*, int, List*, int *);
 
+
+__device__ char buf[8000];
+/*
+ * Convert infix regexp re to postfix notation.
+ * Insert ESC (or 0x1b) as explicit concatenation operator.
+ * Cheesy parser, return static buffer.
+ */
+__device__ inline char * pre2post(char *re)
+{
+	int nalt, natom;
+	char *dst;
+	struct {
+		int nalt;
+		int natom;
+	} paren[100], *p;
+	
+	p = paren;
+	dst = buf;
+	nalt = 0;
+	natom = 0;
+	
+	int len = 0; 
+	char * sc = re;
+	while(*sc != 0) {
+		len ++;
+		sc += 1;
+	}
+
+	if(len >= sizeof buf/2)
+		return NULL;
+	for(; *re; re++){
+		switch(*re){
+		case PAREN_OPEN: // (
+			if(natom > 1){
+				--natom;
+				*dst++ = CONCATENATE;
+			}
+			if(p >= paren+100)
+				return NULL;
+			p->nalt = nalt;
+			p->natom = natom;
+			p++;
+			nalt = 0;
+			natom = 0;
+			break;
+		case ALTERNATE: // |
+			if(natom == 0)
+				return NULL;
+			while(--natom > 0)
+				*dst++ = CONCATENATE;
+			nalt++;
+			break;
+		case PAREN_CLOSE: // )
+			if(p == paren)
+				return NULL;
+			if(natom == 0)
+				return NULL;
+			while(--natom > 0)
+				*dst++ = CONCATENATE;
+			for(; nalt > 0; nalt--)
+				*dst++ = ALTERNATE;
+			--p;
+			nalt = p->nalt;
+			natom = p->natom;
+			natom++;
+			break;
+		case STAR: // *
+		case PLUS: // +
+		case QUESTION: // ?
+			if(natom == 0)
+				return NULL;
+			*dst++ = *re;
+			break;
+		default:
+			if(natom > 1){
+				--natom;
+				*dst++ = CONCATENATE;
+			}	
+			*dst++ = *re;
+			natom++;
+			break;
+		}
+	}
+	if(p != paren)
+		return NULL;
+	while(--natom > 0)
+		*dst++ = CONCATENATE;
+	for(; nalt > 0; nalt--)
+		*dst++ = ALTERNATE;
+	*dst = 0;
+
+	return dst;
+}
+
+
+
 /* Compute initial state list */
 __device__ inline List*
 pstartlist(State *start, List *l, int *dlistid)
@@ -117,8 +213,11 @@ __device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2, in
 	return isMatch;
 }
 
-__global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int time, char *postfix, unsigned char * devResult) {
+__global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int time, char *regex, unsigned char * devResult) {
 
+	pre2post(regex);
+	char *postfix = buf;
+	
 	State s[100];
 	pnstate = 0;
 	states = s;

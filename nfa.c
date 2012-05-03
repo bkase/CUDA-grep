@@ -124,11 +124,12 @@ main(int argc, char **argv)
 			exit(EXIT_SUCCESS);
 		}
 		
-		
-		char *device_post;
-		int postsize = (strlen(post) + 1) * sizeof (char);
-		cudaMalloc((void **) &device_post, postsize); 
-		cudaMemcpy(device_post, post, postsize, cudaMemcpyHostToDevice);	
+		    simplifyRe(argv[optIndex], &builder);
+
+		char *device_regex;
+		int postsize = (strlen(builder.re) + 1) * sizeof (char);
+		cudaMalloc((void **) &device_regex, postsize); 
+		cudaMemcpy(device_regex, builder.re, postsize, cudaMemcpyHostToDevice);	
 
 		startTime = CycleTimer::currentSeconds();
    		
@@ -140,7 +141,7 @@ main(int argc, char **argv)
 		copyStringsToDevice(lines, numLines, &device_line, &device_table);
         endCopyStringsToDevice = CycleTimer::currentSeconds();
 
-		pMatch(device_line, device_table, numLines, time, device_post, lines);
+		pMatch(device_line, device_table, numLines, time, device_regex, lines);
         endPMatch = CycleTimer::currentSeconds();
 
 		for (i = 0; i <= numLines; i++) 
