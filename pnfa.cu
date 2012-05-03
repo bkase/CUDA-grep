@@ -5,6 +5,16 @@ __device__ inline void pstep(List*, int, List*, int *);
 
 
 __device__ char buf[8000];
+
+__device__ inline int pstrlen(char *str) {
+	int len = 0; 
+	while(*str != 0) {
+		len ++;
+		str += 1;
+	}
+	return len;
+}
+
 /*
  * Convert infix regexp re to postfix notation.
  * Insert ESC (or 0x1b) as explicit concatenation operator.
@@ -24,13 +34,7 @@ __device__ inline char * pre2post(char *re)
 	nalt = 0;
 	natom = 0;
 	
-	int len = 0; 
-	char * sc = re;
-	while(*sc != 0) {
-		len ++;
-		sc += 1;
-	}
-
+	int len = pstrlen(re);
 	if(len >= sizeof buf/2)
 		return NULL;
 	for(; *re; re++){
@@ -199,13 +203,7 @@ pmatch(State *start, char *s, List *dl1, List *dl2, int * dlistid)
 __device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2, int *dlistid) { 
 	int isMatch = pmatch(start, s, dl1, dl2, dlistid);
 	int index = 0;
-	int len = 0; 
-	char * sc = s;
-	while(*sc != 0) {
-		len ++;
-		sc += 1;	
-	}
-	
+	int len = pstrlen(s);	
 	while (!isMatch && index < len) {
 		isMatch = pmatch(start, s + index, dl1, dl2, dlistid);
 		index ++;

@@ -124,15 +124,14 @@ main(int argc, char **argv)
 			exit(EXIT_SUCCESS);
 		}
 		
-		    simplifyRe(argv[optIndex], &builder);
-
+	    simplifyRe(argv[optIndex], &builder);
+	
 		char *device_regex;
 		int postsize = (strlen(builder.re) + 1) * sizeof (char);
 		cudaMalloc((void **) &device_regex, postsize); 
 		cudaMemcpy(device_regex, builder.re, postsize, cudaMemcpyHostToDevice);	
-
-		startTime = CycleTimer::currentSeconds();
-   		
+	
+		startTime = CycleTimer::currentSeconds();	
 		readFile(fileName, &lines, &numLines); 	 
     	endReadFile = CycleTimer::currentSeconds();
 
