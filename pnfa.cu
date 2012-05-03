@@ -117,7 +117,7 @@ __device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2, in
 	return isMatch;
 }
 
-__global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int nstate, int time, char *postfix, unsigned char * devResult) {
+__global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int time, char *postfix, unsigned char * devResult) {
 
 	State s[100];
 	pnstate = 0;
@@ -142,12 +142,12 @@ __global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int numLi
 	}
 }
 
-void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int nstate, int time, char * postfix, char **lines) {
+void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int time, char * postfix, char **lines) {
 
 	unsigned char *devResult;
 	cudaMalloc(&devResult, numLines * sizeof(unsigned char));
 	
-	parallelMatch<<<256, 256>>>(bigLine, tableOfLineStarts, numLines, nstate ,time, postfix, devResult);
+	parallelMatch<<<256, 256>>>(bigLine, tableOfLineStarts, numLines, time, postfix, devResult);
 	cudaThreadSynchronize();
 
     cudaError_t error = cudaGetLastError();

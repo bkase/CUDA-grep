@@ -91,4 +91,38 @@ void visualize_nfa_help(State * start);
 void visualize_nfa(State * start);
 double gettime();
 
+
+#define STATE_FREED 
+#define STATE_INIT 0
+
+#define DEBUG
+#ifdef DEBUG
+#define LOG(...) printf(__VA_ARGS__)
+#endif
+
+#ifndef DEBUG
+#define LOG(...) //comment
+#endif
+
+
+typedef unsigned int u32;
+
+
+State* state(int c, State *out, State *out1);
+Frag frag(State *start, Ptrlist *out);
+Ptrlist* list1(State **outp);
+void patch(Ptrlist *l, State *s);
+Ptrlist* append(Ptrlist *l1, Ptrlist *l2);
+State* post2nfa(char *postfix);
+
+
+List* startlist(State *start, List *l);
+int ismatch(List *l);
+void addstate(List *l, State *s);
+void step(List *clist, int c, List *nlist);
+int match(State *start, char *s);
+int  anyMatch(State *start, char *s);
+void copyStateToDevice(State **device_start, State *out, int pos);
+void  copyStringsToDevice(char **lines, int numLines, char ** device_line, u32 ** device_table); 
+
 #endif
