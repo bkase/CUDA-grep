@@ -203,7 +203,6 @@ int hasSeen(State * start, int * index) {
 }
 
 
-
 void visualize_nfa_help(State * start) {
     int index;
     if (start == NULL) {

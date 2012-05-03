@@ -16,7 +16,8 @@
 #include "pnfa.h"
 #include "cycleTimer.h"
 
-#define STATE_COPIED 10
+#define STATE_FREED 
+#define STATE_INIT 0
 
 #define DEBUG
 #ifdef DEBUG
@@ -48,7 +49,7 @@ state(int c, State *out, State *out1)
 	// serves no real purpose other than to help transfer the NFA over
 	s->dev = NULL;
 	
-	s->free = 0;
+	s->free = STATE_INIT;
 	return s;
 }
 
@@ -97,8 +98,6 @@ append(Ptrlist *l1, Ptrlist *l2)
 	l1->next = l2;
 	return oldl1;
 }
-
-
 
 /*
  * Convert postfix regular expression to NFA.
@@ -180,7 +179,7 @@ void addstate(List*, State*);
 void step(List*, int, List*);
 
 /* Compute initial state list */
-	List*
+List*
 startlist(State *start, List *l)
 {
 	l->n = 0;
@@ -190,7 +189,7 @@ startlist(State *start, List *l)
 }
 
 /* Check whether state list contains a match. */
-	int
+int
 ismatch(List *l)
 {
 	int i;
@@ -202,7 +201,7 @@ ismatch(List *l)
 }
 
 /* Add s to l, following unlabeled arrows. */
-	void
+void
 addstate(List *l, State *s)
 {
 	// lastlist check is present to ensure that if
@@ -241,7 +240,7 @@ step(List *clist, int c, List *nlist)
 }
 
 /* Run NFA to determine whether it matches s. */
-	int
+int
 match(State *start, char *s)
 {
 	int c;
@@ -283,7 +282,6 @@ void
 copyStateToDevice(State **device_start, State *out, int pos) {
 
 	if ((out != NULL)) { // && out->free != STATE_COPIED)) {
-		out->free = STATE_COPIED;
 	
 		State *device_out = out->dev;
 		int done;
@@ -316,21 +314,21 @@ copyStateToDevice(State **device_start, State *out, int pos) {
 }
 
 void 
-copyStringsToDevice(char **lines, int lineIndex, char ** device_line, u32 ** device_table) {
+copyStringsToDevice(char **lines, int numLines, char ** device_line, u32 ** device_table) {
     
     //TODO: Is it more efficient to do this in two passes or to realloc a bunch of times
     //TODO: Instead of making some tableOfLineStarts empty use a different index for the avoided line[i]
     int size = 0;
-    u32 * tableOfLineStarts = (u32 *)malloc(sizeof(u32)*(lineIndex+1));
-    for (int i = 0; i < lineIndex; i++) {
+    u32 * tableOfLineStarts = (u32 *)malloc(sizeof(u32)*(numLines+1));
+    for (int i = 0; i < numLines; i++) {
         tableOfLineStarts[i] = size;
         size += strlen(lines[i]) + 1;
     }
-    tableOfLineStarts[lineIndex] = size;
+    tableOfLineStarts[numLines] = size;
 
     char * bigLine = (char *)malloc(size);
     char * bigLineRunner = bigLine;
-    for (int i = 0; i < lineIndex; i++) {
+    for (int i = 0; i < numLines; i++) {
         //the size of this line is the runningTotal at the next index minus the runningTotal at this one (subtract off the null byte)
         int lineSize = (tableOfLineStarts[i+1] - tableOfLineStarts[i]) - 1;
         if (lineSize != 0) {
@@ -345,8 +343,8 @@ copyStringsToDevice(char **lines, int lineIndex, char ** device_line, u32 ** dev
     //TODO: check for cudaMalloc errors
     cudaMemcpy(*device_line, bigLine, size, cudaMemcpyHostToDevice);
 
-    cudaMalloc((void **) device_table, sizeof(u32)*(lineIndex+1));
-    cudaMemcpy(*device_table, tableOfLineStarts, sizeof(u32)*(lineIndex+1), cudaMemcpyHostToDevice);
+    cudaMalloc((void **) device_table, sizeof(u32)*(numLines+1));
+    cudaMemcpy(*device_table, tableOfLineStarts, sizeof(u32)*(numLines+1), cudaMemcpyHostToDevice);
 
     free(tableOfLineStarts);
     free(bigLine);
@@ -363,7 +361,7 @@ main(int argc, char **argv)
 	State *start;
 	double startTime, endTime, endReadFile, endCopyStringsToDevice, endPMatch; 
 	char **lines;
-	int lineIndex;
+	int numLines;
 
 	parseCmdLine(argc, argv, &visualize, &postfix, &fileName, &time, &simplified);
 
@@ -403,25 +401,20 @@ main(int argc, char **argv)
         exit(0);
 	}
 
-	char *device_post;
-	int postsize = (strlen(post) + 1) * sizeof (char);
-	cudaMalloc(&device_post, postsize); 
-	cudaMemcpy(device_post, post, postsize, cudaMemcpyHostToDevice);
-
-
-	start = post2nfa(post);
-	if(start == NULL){
-		fprintf(stderr, "error in post2nfa %s\n", post);
-		return 1;
-	}
-
 	if (visualize == 1) { 
+		start = post2nfa(post);
 		visualize_nfa(start);
         exit(0);
 	}
-	
+
 	// sequential matching
 	if (parallel != 1) {
+		
+		start = post2nfa(post);
+		if(start == NULL){
+			fprintf(stderr, "error in post2nfa %s\n", post);
+		return 1;
+		}
 
 		// if no file is specified
 		if (fileName == NULL) {
@@ -435,11 +428,11 @@ main(int argc, char **argv)
 		else {
 			startTime = CycleTimer::currentSeconds();
 		
-			readFile(fileName, &lines, &lineIndex); 	
+			readFile(fileName, &lines, &numLines); 	
 
-            unsigned char result[lineIndex];
+            unsigned char result[numLines];
 
-			for (i = 0; i < lineIndex; i++) { 
+			for (i = 0; i < numLines; i++) { 
 				if (anyMatch(start, lines[i]))  
 					result[i] = 1;
 				else
@@ -447,12 +440,12 @@ main(int argc, char **argv)
 			}
             endTime = CycleTimer::currentSeconds();
 	
-			for ( i = 0; i < lineIndex; i++) {
+			for ( i = 0; i < numLines; i++) {
 				if(result[i] == 1)
 					printf("%s", lines[i]);
 			}
 
-			for (i = 0; i <= lineIndex; i++) 
+			for (i = 0; i <= numLines; i++) 
 			free(lines[i]);
 			free(lines);
 		}
@@ -465,25 +458,29 @@ main(int argc, char **argv)
 			printf("Enter a file \n");
 			exit(EXIT_SUCCESS);
 		}
-	
-        startTime = CycleTimer::currentSeconds();
+		
+		
+		char *device_post;
+		int postsize = (strlen(post) + 1) * sizeof (char);
+		cudaMalloc((void **) &device_post, postsize); 
+		cudaMemcpy(device_post, post, postsize, cudaMemcpyHostToDevice);	
 
-		readFile(fileName, &lines, &lineIndex); 	 
-        endReadFile = CycleTimer::currentSeconds();
+		startTime = CycleTimer::currentSeconds();
+   		
+		readFile(fileName, &lines, &numLines); 	 
+    	endReadFile = CycleTimer::currentSeconds();
 
 		char * device_line;
         u32 * device_table;
-		
-		copyStringsToDevice(lines, lineIndex, &device_line, &device_table);
+		copyStringsToDevice(lines, numLines, &device_line, &device_table);
         endCopyStringsToDevice = CycleTimer::currentSeconds();
 
-		pMatch(device_line, device_table, lineIndex, nstate, time, device_post, lines);
+		pMatch(device_line, device_table, numLines, nstate, time, device_post, lines);
         endPMatch = CycleTimer::currentSeconds();
 
-		for (i = 0; i <= lineIndex; i++) 
-		free(lines[i]);
+		for (i = 0; i <= numLines; i++) 
+			free(lines[i]);
 		free(lines);
-
 	}
 
 	if (time && !parallel) {
