@@ -1,6 +1,8 @@
 #include "nfautil.h"
 #include "regex.h"
 
+#define DEREF(arr,i) ((*(arr))[(i)])
+
 /* constructor for SimpleReBuilder */
 void simpleReBuilder(SimpleReBuilder ** builder, int len) {
     (*builder)->re = (char *)malloc(len+3);
@@ -24,19 +26,42 @@ char * stringify(char * nonull, int j) {
     return proper;
 }
 
-void handle_escape(SimpleReBuilder * builder, char * complexRe, int len, int * bi, int * ci) {
+void handle_escape(SimpleReBuilder * builder, char ** complexRe, int * len, int * bi, int * ci) {
 
     int i = *ci;
     int j = *bi;
+    int oldI;
 
-    if (i+1 > len)
+    if (i+1 > *len)
         regex_error(i);
 
-    i++; //go to escaped character and ignore '/'
-    switch(complexRe[i]) {
+    oldI = ++i; //go to escaped character and ignore '/'
+    switch(DEREF(complexRe,i)) {
         
         case 'd':
-            printf("digits here\n");
+            char * buf;
+            /* enough space for complexRe+the new range */
+            *len = *len+6;
+            *complexRe = (char*)realloc(*complexRe, *len);
+
+
+
+            buf = (char*)malloc(*len);
+            for (int k = i; k < *len-6; k++) {
+                buf[k-i] = DEREF(complexRe,k);
+            }
+            DEREF(complexRe,i++) = '[';
+            DEREF(complexRe,i++) = '0';
+            DEREF(complexRe,i++) = '-';
+            DEREF(complexRe,i++) = '9';
+            DEREF(complexRe,i++) = ']';
+            for (int k = i; k < *len; k++) {
+                DEREF(complexRe,k) = buf[k-i+1];
+            }
+
+            i = oldI;
+            
+            free(buf);
             break;
 
         case 'w':
@@ -48,7 +73,7 @@ void handle_escape(SimpleReBuilder * builder, char * complexRe, int len, int * b
         // default is just ignoring the backslash and taking the 
         // LITERAL character after no matter what
         default:
-            builder->re[j++] = complexRe[i++];
+            builder->re[j++] = *complexRe[i++];
             break;
     }
 
@@ -86,17 +111,17 @@ void handle_range(SimpleReBuilder * builder, char * complexRe, int len, int * bi
     *ci = i+4;
 }
 
-SimpleReBuilder * simplifyRe(char * complexRe, SimpleReBuilder * builder) {
+SimpleReBuilder * simplifyRe(char ** complexRe, SimpleReBuilder * builder) {
 
-    int len = strlen(complexRe);
+    int len = strlen(*complexRe);
     simpleReBuilder(&builder, len);
 
     int i,j;
     for (i = 0, j = 0; i < len; i++, j++) {
-        switch(complexRe[i]) {
+        switch(DEREF(complexRe, i)) {
             
             case '\\':
-                handle_escape(builder, complexRe, len, &j, &i);
+                handle_escape(builder, complexRe, &len, &j, &i);
                 break;
 
             case '.':
@@ -128,11 +153,11 @@ SimpleReBuilder * simplifyRe(char * complexRe, SimpleReBuilder * builder) {
                 break;
 
             case '[':
-                handle_range(builder, complexRe, len, &j, &i);
+                handle_range(builder, *complexRe, len, &j, &i);
                 break;
 
             default:
-                builder->re[j] = complexRe[i];
+                builder->re[j] = DEREF(complexRe,i);
                 break;
         }
 
