@@ -20,7 +20,7 @@ pass=1
 
 len=${#teststrings[@]} 
 
-FILES=./testcases/*
+FILES=./testcases/*.txt
 
 #loop over all test cases
 for file in $FILES
@@ -28,6 +28,7 @@ do
 	for ((i=0; i<len; i++))
 	do
 		testcase=${teststrings[$i]}
+        echo -n '.'
 		if diff <(sort <(../nfa -f $file $testcase)) <(sort <(egrep $testcase $file)) >> RESULTS; then
 			cat /dev/null
 		else
