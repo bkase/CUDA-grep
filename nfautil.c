@@ -453,17 +453,20 @@ void readFile(char *fileName, char ***lines, int *lineIndex) {
 
 
 void usage(const char* progname) {
-    printf("Usage: %s [options] [pattern] [text]*\n", progname);
+    printf("Usage: %s [options] [pattern] \n", progname);
     printf("Program Options:\n");
     printf("  -v	Visualize the NFA then exit\n");
     printf("  -p	View postfix expression then exit\n"); 
 	printf("  -s	View simplified expression then exit\n");
 	printf("  -t	Print timing data\n");
-    printf("  -f <FILE> --file Input file\n");	
+    printf("  -f <FILE> --file Input file to be matched\n");	
+	printf("  -r <FILE> --regex Input file with regexs\n");	
 	printf("  -? This message\n");
+	printf("[pattern] required only if -r or --regex is not used\n");
 }
 
-void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, char **fileName, int *time, int *simplified, char **regexFile) {
+
+void parseCmdLine(int argc, char **argv, int *visualize, int *postfix, int *time, int *simplified, char **fileName, char **regexFile) {
 	if (argc < 3) {
 		usage(argv[0]);
 		exit(EXIT_SUCCESS);

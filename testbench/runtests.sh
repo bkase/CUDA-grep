@@ -33,7 +33,7 @@ do
 			cat /dev/null
 		else
 			pass=0
-			echo "Test Failed $testcase"
+			echo "Test Failed $testcase for $file"
 		fi
 	done
 done
