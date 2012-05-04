@@ -80,7 +80,7 @@ void handle_escape(SimpleReBuilder * builder, char ** complexRe, int * len, int 
         // default is just ignoring the backslash and taking the 
         // LITERAL character after no matter what
         default:
-            builder->re[j++] = *complexRe[i++];
+            builder->re[j++] = DEREF(complexRe, i++);
             break;
     }
 
