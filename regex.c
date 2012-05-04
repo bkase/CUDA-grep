@@ -32,23 +32,25 @@ void insertIntoComplexRe(char ** complexRe, int where, int * len, char * toInser
     int i = where;
 
     /* enough space for complexRe+the new range */
-    *len = *len+6;
+    *len = *len+(insertLen+1);
     *complexRe = (char*)realloc(*complexRe, *len);
 
     /* buffer the rest */
     buf = (char*)malloc(*len);
-    for (int k = i; k < *len-6; k++) {
-        buf[k-i] = DEREF(complexRe,k);
+    for (int k = i+2; k < *len-(insertLen+1); k++) {
+        buf[k-(i+2)] = DEREF(complexRe,k);
     }
 
     /* insert the string */
+
     for (int k = 0; k < insertLen; k++) {
         DEREF(complexRe, i++) = toInsert[k];
     }
 
     /* put the buffer back in */
+
     for (int k = i; k < *len; k++) {
-        DEREF(complexRe,k) = buf[k-i+1];
+        DEREF(complexRe,k) = buf[k-i];
     }
 
     free(buf);
@@ -66,11 +68,11 @@ void handle_escape(SimpleReBuilder * builder, char ** complexRe, int * len, int 
     switch(DEREF(complexRe,i)) {
         
         case 'd':
-            insertIntoComplexRe(complexRe, i, len, "[0-9]");
+            insertIntoComplexRe(complexRe, --i, len, "[0-9]");
             break;
 
         case 'w':
-            printf("word character here\n");
+            insertIntoComplexRe(complexRe, --i, len, "([a-z]|_)");
             break;
 
         /* ... see www.cs.tut.fi/~jkorpela/perl/regexp.html */
