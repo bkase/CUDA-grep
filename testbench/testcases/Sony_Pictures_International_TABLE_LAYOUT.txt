@@ -1,0 +1,236 @@
+TARGET: Sony Pictures International [sonypictures.com]
+
+[exposed sonypictures.com database]
+NAME: sweepstakes
+
+TABLES | COLUMNS
+
+
+yr_faceoff_votes4 | create_date vote cat id
+yr_faceoff_votes3 | create_date vote cat id
+yr_faceoff_votes2 | create_date vote cat id
+yr_faceoff_votes | create_date vote cat id
+yr_35_votes | create_date vote qid id
+walkhard_rsvp_20071129 | CreateDate Venue Last First Email UserID
+untraceable_askagent_20071115 | Optin2 Optin1 Scoop Gender Zip DOB Email CreateDate Name Question UserID
+tv_is_better_lookup | quarter month endtime starttime
+superbad_myspace_20070522 | CreateDate Last First Email UserID
+superbad_log | create_date aristotle sentry id
+sty_votes | create_date voteid id
+sptv_yr_vegaswedding_votes_20090505 | address create_date voteid id
+sptv_yr_vegaswedding_20090225 | Optin2 Optin1 Scoop MGM LVCVA Question FileExt FotoID CreateDate CoupleInfo Travel SDOB SGender SPhone SZip SState SCity SAddress2 SAddress SLast SFirst SEmail YDOB YGender YPhone YZip YState YCity YAddress2 YAddress YLast YFirst YEmail UserID
+sptv_yr_summer_restless_beauty_win_times | prize21 prize20 prize19 prize18 prize17 prize16 prize15 prize14 prize13 prize12 prize11 prize10 prize9 prize8 prize7 prize6 prize5 prize4 prize3 prize2 prize1 wintime21 wintime20 wintime19 wintime18 wintime17 wintime16 wintime15 wintime14 wintime13 wintime12 wintime11 wintime10 wintime9 wintime8 wintime7 wintime6 wintime5 wintime4 wintime3 wintime2 wintime1 date id
+sptv_yr_summer_restless_beauty_users | Optin2 Optin1 Luminess Scoop CreateDate Question3 Question2 Question1 Bucket DOB Gender Phone Zip State City Address2 Address1 Last First Password Email UserID
+sptv_yr_summer_restless_beauty_survey_questions | Bucket SurveyDate Answer5 Answer4 Answer3 Answer2 Answer1 Question SurveyId
+sptv_yr_summer_restless_beauty_survey_answers | CreateDate UserId Answer SurveyId Id
+sptv_yr_summer_restless_beauty_entries | Prize CreateDate Win UserID ID
+sptv_yr_springsweeps_twitter_user | optin3 optin2 optin1 bedbathbeyond createdate dob gender phone zip state city address2 address1 twitterusername last first email userid
+sptv_yr_springsweeps_twitter_tweet | video opendate tweet access_key id
+sptv_yr_poll_20110411 | created answer id
+sptv_seinfeld_text_20090916 | Optin2 Optin1 Scoop CreateDate Vote DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+sptv_seinfeld_hamptons_20090504 | Optin2 Optin1 EntertainmentWorld Scoop CreateDate DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+sptv_seinfeld_delboca_users | created refinfoid doral frommers miami optin1 scoop quiz_date dob gender phone zip state city address2 address1 last first password email id
+sptv_seinfeld_delboca_answers | created date email id
+sptv_seinfeld_autotrader_20090310 | Optin2 Optin1 AutoTrader Scoop CreateDate DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+sptv_restlessstyle_romance_20100125 | RefinfoID Ice Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+sptv_koq_summer_20090629 | Optin2 Optin1 ImprovementDirect Mybutcher Manvite Scoop CreateDate DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+sptv_koq_autotraders_users | Optin2 Optin1 Autotrader Scoop CreateDate quiz_date Period Tz DOB Gender Phone Zip State City Address2 Address1 Last First Password Email UserID
+sptv_koq_autotraders_dates | quiz_date period endtime starttime ID
+sptv_koq_autotraders_answers | createdate period quiz_date answer email id
+sptv_dool_whosthedaddy_poll | created answer id
+sptv_dool_mosaic_users_week4 | Optin2 Optin1 Scoop CreateDate DOB Gender Phone Country Zip State City Address2 Address1 Last First Email UserID
+sptv_dool_mosaic_users_week3 | Optin2 Optin1 Scoop CreateDate DOB Gender Phone Country Zip State City Address2 Address1 Last First Email UserID
+sptv_dool_mosaic_users_week2 | Optin2 Optin1 Scoop CreateDate DOB Gender Phone Country Zip State City Address2 Address1 Last First Email UserID
+sptv_dool_mosaic_users_week1 | Optin2 Optin1 Scoop CreateDate DOB Gender Phone Country Zip State City Address2 Address1 Last First Email UserID
+sptv_dool_mosaic_foto_week4 | Rotation Scale Disqualified Approved CreateDate SweepsID Fan State FirstName Foto UserID
+sptv_dool_mosaic_foto_week3 | Rotation Scale Disqualified Approved CreateDate SweepsID Fan State FirstName Foto UserID
+sptv_dool_mosaic_foto_week2 | Rotation Scale Disqualified Approved CreateDate SweepsID Fan State FirstName Foto UserID
+sptv_dool_mosaic_foto_week1 | Rotation Scale Disqualified Approved CreateDate SweepsID Fan State FirstName Foto UserID
+sptv_dool_mosaic_coordinates_week4 | ColumnNum RowNum Foto ID
+sptv_dool_mosaic_coordinates_week3 | ColumnNum RowNum Foto ID
+sptv_dool_mosaic_coordinates_week2 | ColumnNum RowNum Foto ID
+sptv_dool_mosaic_coordinates_week1 | ColumnNum RowNum Foto ID
+sptv_days_mothersdayscrapbook_20110412 | created scoop optin1 approved img essay dob state city first id
+sptv_days_bestof_poll_2009 | created email answer question_id id
+sptv_davincisinquest_gameplayer_20051107 | C10Q3 C10Q2 C10Q1 C9Q3 C9Q2 C9Q1 C8Q3 C8Q2 C8Q1 C7Q3 C7Q2 C7Q1 C6Q3 C6Q2 C6Q1 C5Q3 C5Q2 C5Q1 C4Q3 C4Q2 C4Q1 C3Q3 C3Q2 C3Q1 C2Q3 C2Q2 C2Q1 C1Q3 C1Q2 C1Q1 ModDate CreateDate Optin2 Optin1 DOB PlayerName Email UserID
+spt_seinfeld_campustour_20080807 | Optin2 Optin1 SonyRewards Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spiderman_myspace_20070425 | CreateDate Last First Email UserID
+spiderman_meetgreet_20060717 | Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+sphe_sonywonder_wonderwhaticanwin_20091211 | RefinfoID Delta Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+sphe_sonywonder_parentssurvey_20090923 | Q8 Q7 Q6 Q5 Q4 Q3 Q2 Q1 Optin2 Optin1 Scoop CreateDate DOB Gender Zip State Last First Email UserID
+sphe_sonywonder_music_codes | AccessDate Taken MusicCode ID
+sphe_sonywonder_coupon_codes | AccessDate MusicCode Strike Coupon ID
+sphe_sony_wonder_win_times | wintime date id
+sphe_sony_wonder_instant_win_20081126 | win Optin2 Optin1 Pevonia Overstock Spa BaskinRobbins Scoop CreateDate DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+sphe_redbelt_20080812 | Optin2 Optin1 LegendGym Scoop CreateDate DOB Gender Phone Zip State City Address2 Address Last First Email UserID
+sphe_otherboleyn_20080509 | Optin2 Optin1 VisitBritain Ice Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+sphe_madeofhonor_sayidotoromance_20080910 | Address2 Fleurop DiamondsInternational BrendanWorldwide VisitBritain Optin3 Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+sphe_juliejulia_win_times | prize1 wintime1 date id
+sphe_juliejulia_users | Prize Win Optin3 Optin2 Optin1 SurLaTable LeCreuset LeCordonBleu Delta Scoop CreateDate DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+sphe_girlsnightin_ecard_20090113 | EventDate EventTime RSVP DVD Notes Place Theme Title SenderName CreateDate CardID ID
+sphe_ghostbusters_wallpaper_20090521 | Scoop Rotation Scale YLoc XLoc Public Approved Edited ImageStatus CreateDate DOB Gender LastName FirstName Email Foto UserID
+sphe_ghostbuster_video_20090601 | CreateDate YouTube Last First Email UserID
+sphe_ghostbuster_comiccon_20090731 | Optin3 Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+sphe_boondocksaints_coupon_codes | AccessDate Strike Coupon ID
+sphe_affirmfilms_screenings_20100212 | Pastor StoreName Occupation Movie Optin3 Optin2 Optin1 Scoop CreateDate DOB Gender Zip State City Last First Email UserID
+sphe_actionunleashed_20110429 | Phone Optin3 Optin2 Optin1 CreateDate DOB Gender Zip State City Address2 Address1 Last First Email UserID
+spe_zombieland_photo_20090714 | Scoop Rotation Scale YLoc XLoc Public Approved Edited ImageStatus CreateDate DOB Gender LastName FirstName Email Foto UserID
+spe_zohan_20071212 | Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_yr_20070315 | Optin2 Optin1 BG Renaissance HH Southwest SoapDigest Scoop CreateDate DOB Gender CellPhone Phone Zip State City Address Last First Email UserID
+spe_youdontmesswiththezohan_postercustommyspace | goatee_display title_display rotation2 scale2 yloc2 xloc2 rotation scale yloc xloc profile public approved edited image_status votes rank created file_ext description facebook_friend_id facebook_id photo_id id
+spe_youdontmesswiththezohan_postercustomfacebook | goatee_display title_display rotation2 scale2 yloc2 xloc2 rotation scale yloc xloc profile public approved edited image_status votes rank created file_ext description facebook_friend_id facebook_id photo_id id
+spe_youdontmesswiththezohan_postercustombebo | goatee_display title_display rotation2 scale2 yloc2 xloc2 rotation scale yloc xloc profile public approved edited image_status votes rank created file_ext description facebook_friend_id facebook_id photo_id id
+spe_youdontmesswiththezohan_postercustom_20070130 | Scoop GoateeDisplay TitleDisplay Rotation2 Scale2 YLoc2 XLoc2 Rotation Scale YLoc XLoc Public Approved Edited ImageStatus Votes Rank FileExt CreateDate DOB Gender LastName FirstName Email FotoID UserID
+spe_youdontmesswiththezohan_ecard_20080527 | created file_ext token recipient email sender caption image id
+spe_yearone_20090128 | CreateDate Optin2 Optin1 Scoop Destination DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+spe_welcometotherileys_reg_20100719 | created optin zip gender dob email id
+spe_vantagepoint_20080122 | Optin2 Optin1 Tivo Sel Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_untraceable_cyberpower_20071025 | Optin2 Optin1 CyberPower Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_uglytruth_video_20090710 | CreateDate YouTube UserID
+spe_thevirginityhit_maleanimalinfo_20100625 | Approved Story Title Optin2 Optin1 Scoop CreateDate DOB Gender Zip State City Name Email UserID
+spe_thesocialnetwork_ticket_request | Zip optin3 CreateDate optin2 optin1 scoop Tickets DOB Gender Last First Email UserID
+spe_thesocialnetwork_friendup_20100903 | Phone SocialMedia NumberOfFriends Optin3 Optin2 Optin1 Scoop CreateDate DOB Gender Zip State City Address2 Address1 Last First Email UserID
+spe_thegreenhornet_20101123 | created scoop optin1 approved img phone dob zip state city address email last first id
+spe_talladeganights_postercustom_20060622 | Scoop Rotation Scale YLoc XLoc Public Approved Edited ImageStatus Votes Rank FileExt CreateDate DOB Gender LastName FirstName Email FotoID UserID
+spe_takers_phonecall_20100706 | CreateDate CallFrom Number UserID
+spe_surfsup_video_20071112 | CreateDate FavoriteDrink FavoriteFood DreamJob Country Name FriendName UserID
+spe_surfsup_teen_20070511 | Optin2 Optin1 Clubpenguin Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_surfsup_child_20070511 | CreateDate DOB Last First Email UserID
+spe_sty_semester_20070104 | Optin2 Optin1 CollegeBoxes DormBuys DoomVault GreekGear Student Scoop CreateDate DOB Gender CellPhone Phone Zip State City Address Last First Email UserID
+spe_strangerthanfiction_timex_20061026 | Optin2 Optin1 Scoop CreateDate DOB Gender CellPhone Phone Zip State City Address Last First Email UserID
+spe_stepbrothersphoto_20080311 | Optin1 Scoop Approved Description FileExt FotoID CreateDate Phone DOB Gender Zip State City Address Last First Email UserID
+spe_stepbrothers_postercustom_20070222 | Scoop Rotation Scale YLoc XLoc Public Approved Edited ImageStatus Votes Rank FileExt CreateDate DOB Gender LastName FirstName Email FotoID UserID
+spe_stepbrothers_ecard_20080418 | created rotation scale y_loc x_loc file_ext token recipient email sender caption image id
+spe_spiderman_worldpremiere_20070403 | Optin2 Optin1 Expedia Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_spiderman_nyc_20070402 | Optin2 Optin1 Scoop SubmitPeriod CreateDate DOB Gender Phone Zip State City Address Last First Email NetworkUserid NetworkMemberName UserID
+spe_silenthill_test | vote_image vote_id
+spe_silenthill_questions_20060224 | Question CreateDate Last_Initial First UserID
+spe_silenthill_postercontest_20051201_votes_1strnd | vote_confirmed vote_code vote_email vote_image vote_id
+spe_silenthill_postercontest_20051201_votes | vote_confirmed vote_code vote_email vote_image vote_id
+spe_silenthill_postercontest_20051201_users | user_mobile_phone user_mobile_phone_carrier user_mobile_alert user_birthdate user_email user_phone user_zipcode user_country user_state user_city user_address2 user_address1 user_lastname user_firstname user_id
+spe_silenthill_postercontest_20051201_regvoteinfo | Optin1 Scoop Agree MobilePhone MobileCarrier MobileAlert DOB Email Last First CreateDate UserId
+spe_silenthill_postercontest_20051201_images | image_rank5 image_disqualified image_approved image_ordinal image_rank4 image_rank3 image_rank2 image_rank1 image_date image_user_id image_id
+spe_seinfeld_tivo_20071107 | Optin2 Optin1 Tivo Logitech Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_seinfeld_love_20080131 | Optin2 Optin1 KHotels AmericanAirlines Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_salt_wimo_20100519 | created optin2 optin1 scoop email dob phone zip state city address1 last first id
+spe_quarantine_weeklygiveaway_20080902 | Address2 CyberPowerPC Intel Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_quarantine_20080409 | Address2 Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_qos_cokezero_users | Prize Win Optin2 Optin1 Coke Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_qos_cokezero_times | prize2 prize1 wintime2 wintime1 date id
+spe_pinkpanther2_win_times | prize3 prize2 prize1 wintime3 wintime2 wintime1 date id
+spe_pinkpanther2_users | Prize Win Optin2 Optin1 Fleurop Scoop CreateDate DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+spe_pinkpanther2_smart_20090116 | CreateDate Smart Optin2 Optin1 Scoop DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+spe_pineappleexpress_20080317 | Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_openseason_wallpaper_20060809 | Scoop Public Approved Edited ImageStatus Votes Rank Title FileExt CreateDate DOB Gender LastName FirstName Email FotoID UserID
+spe_obsessed_vegas_win_times | prize2 prize1 wintime2 wintime1 date id
+spe_obsessed_vegas_users | Prize Win Optin2 Optin1 Dereon PlanetHollywood Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_nickandnora_fluffy_win_times | wintime2 wintime1 date id
+spe_nickandnora_fluffy_users | win Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_monsterhouse_postertool_20061002 | Scoop Rotation Scale YLoc XLoc Public Approved Edited ImageStatus Votes Rank PI FileExt CreateDate DOB Gender LastName FirstName Email FotoID UserID
+spe_mobile_sweeps_20070613 | Optin2 Optin1 SonyStyle Scoop CreateDate DOB Phone Zip State City Address Last First Email UserID
+spe_mj_thisisit_mosaic_coordinates | ColumnNum RowNum Foto ID
+spe_mj_thisisit_mosaic_20090909 | Scoop Rotation Scale Disqualified Approved CreateDate Song Country LastInitial FirstName Foto UserID
+spe_mj_morph | Lang Continent Scoop Rotation Scale Disqualified Approved CreateDate Points Country Foto Email UserID
+spe_mj_foto | Scoop Rotation Scale Disqualified Approved CreateDate Song Country LastInitial FirstName Foto UserID
+spe_maidofhonor_postercustom_20071120 | Scoop Rotation Scale YLoc XLoc Public Approved Edited ImageStatus Votes Rank FileExt CreateDate DOB Gender LastName FirstName Email FotoID UserID
+spe_madeofhonortheknotsurvey_20080226 | CreateDate Survey UserID
+spe_madeofhonortheknot_20080226 | Optin2 Optin1 Scoop SeliaYang Fleurop Damiani BedBathBeyond Question FileExt FotoID CreateDate Agree Engaged PrimaryContact GDOB GGender GPhone GZip GState GCity GAddress2 GAddress GLast GFirst GEmail BDOB BGender BPhone BZip BState BCity BAddress2 BAddress BLast BFirst BEmail UserID
+spe_madeofhonorpicture_20080304 | Optin1 Scoop Approved FileExt FotoID CreateDate Phone DOB Gender Zip State City Address Last First Email UserID
+spe_littleman_postercustomization_20060518 | Scoop Rotation Scale Y X Public Approved Edited ImageStatus Votes Rank FileExt CreateDate DOB Gender LastName FirstName Email FotoID UserID
+spe_koq_big_20071101 | Optin2 Optin1 Dazadi Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_jumpingthebroom_win_times | prize5 prize4 prize3 prize2 prize1 wintime4 wintime3 wintime1 date id
+spe_jumpingthebroom_users | Prize Win CreateDate DOB Gender Phone Zip Last First Email UserID
+spe_juliejulia_win_times | prize3 prize2 prize1 wintime3 wintime2 wintime1 date id
+spe_juliejulia_users | Prize Win Optin2 Optin1 ScharffenBerger LeCordonBleu Scoop CreateDate DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+spe_juliejulia_recipe_wall_searches | created search_term id
+spe_juliejulia_recipe_wall | modified created approved image confirm directions ingredients cooking_time prep_time alpha recipe_name location name facebook_id type id
+spe_juliejulia_recipe_users | modified created last_access status access password email last first id
+spe_haveyouseen_hancock_20080414 | DOB Agree CreateDate Text Name Email ID
+spe_hancock_mortgage_20080620 | Optin2 Optin1 Scoop Mortgage_Balance Purchase_Value OwnerShipType Approved SubmitEssay FileExt FotoID CreateDate Phone DOB Gender Zip State City Address Last First Email UserID
+spe_hancock_comic_20080619 | Optin2 Optin1 Scoop Jock2 Bill_Sienkiewicz Frank_Quitely Neal_Adams Jock CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_faceofthefan_underworld_consent | CreateDate Parent_Phone Parent_Email Parent_Last Parent_First Minor_Last Minor_First ConsentID
+spe_faceofthefan_underworld | ConsentID RejectDate ApproveDate Image Resume VideoTag VideoUrl Submitted Rejected Approved AssetKey CreateDate Phone Gender Zip State City Address Last First Email UserID
+spe_faceofthefan_thesmurfs_votes | created ip contestant_id id
+spe_faceofthefan_thesmurfs | Scoop Optin2 Optin1 RejectDate ApproveDate Image Resume VideoTag VideoUrl Submitted Rejected Approved AssetKey CreateDate DOB Phone Zip State City Address Last First Email UserID
+spe_faceofthefan_shakethekings_consent | CreateDate Parent_Phone Parent_Email Parent_Last Parent_First Minor_Last Minor_First ConsentID
+spe_faceofthefan_shakethekings | ConsentID RejectDate ApproveDate Image Resume VideoTag VideoUrl Submitted Rejected Approved AssetKey CreateDate Phone Gender Zip State City Address Last First Email UserID
+spe_faceofthefan_mortalinstruments_consent | CreateDate Parent_Phone Parent_Email Parent_Last Parent_First Minor_Last Minor_First ConsentID
+spe_faceofthefan_mortalinstruments | ConsentID RejectDate ApproveDate Image Resume VideoTag VideoUrl Submitted Rejected Approved AssetKey CreateDate Phone Gender Zip State City Address Last First Email UserID
+spe_faceofthefan_iphone | Scoop Optin2 Optin1 RejectDate ApproveDate Image Resume VideoTag VideoUrl Submitted Rejected Approved AssetKey CreateDate DOB Phone Zip State City Address Last First Email UserID
+spe_faceofthefan_greenhornet | RejectDate ApproveDate Image Resume VideoTag VideoUrl Submitted Rejected Approved AssetKey CreateDate DOB Phone Gender Zip State City Address Last First Email UserID
+spe_faceofthefan_amazingspiderman | Gender Scoop Optin2 Optin1 RejectDate ApproveDate Image Resume VideoTag VideoUrl Submitted Rejected Approved AssetKey CreateDate DOB Phone Zip State City Address Last First Email UserID
+spe_faceofthefan_alltlm_votes | created source ip contestant_id id
+spe_faceofthefan_alltlm_consent | CreateDate Parent_Phone Parent_Email Parent_Last Parent_First Minor_Last Minor_First ConsentID
+spe_faceofthefan_alltlm | ConsentID RejectDate ApproveDate Image Resume VideoTag VideoUrl Submitted Rejected Approved AssetKey CreateDate Phone Gender Zip State City Address Last First Email UserID
+spe_epl_facebook_20100503 | HSN WorldMarket RepublicOfTea Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+spe_epl_facebook_20100316 | Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+spe_easya_ticket_request | CreateDate Showing Tickets Age Gender Last First Email UserID
+spe_dontmesswithzohan_20071205 | Optin2 Optin1 Dazadi Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email Foto UserID
+spe_district9_20080710 | Optin2 Optin1 Country Species CreateDate DOB Gender Zip Email UserID
+spe_crossover_canidunk_20060707 | Scoop Public Approved Edited ImageStatus Votes Rank Title FileExt CreateDate DOB Gender LastName FirstName Email FotoID UserID
+spe_cloudy_win_times | prize4 prize3 prize2 prize1 wintime4 wintime3 wintime2 wintime1 date id
+spe_cloudy_users | Prize Win Optin2 Optin1 VisitJamaica AirJamaica SunsetResort Scoop CreateDate DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+spe_click_remotekeychain_20060609 | Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_click_postercustomization_20050331 | Rotation Scoop Scale Y X Public Approved Edited ImageStatus Votes Rank FileExt CreateDate DOB Gender LastName FirstName Email FotoID UserID
+spe_click_myspace_postertool_20060613 | Scoop TColor TYLoc TXLoc BType BYLoc BXLoc Rotation Scale YLoc XLoc Public Approved Edited ImageStatus Votes Rank FileExt CreateDate DOB Gender LastName FirstName Email FotoID UserID
+spe_brothers_20070828 | Optin2 Optin1 Scoop LoveSac Fye Hardee CarlJ CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_battlela_theultimatebattle_20110207 | Phone Optin3 Optin2 Optin1 CreateDate DOB Gender Zip State City Address2 Address1 Last First Email UserID
+spe_are_we_done_yet_20070221 | Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_angelsdemons_mobile_wintimes | prize2 prize1 wintime2 wintime1 date id
+spe_angelsdemons_mobile_users | city phone userid email
+spe_30daysofnights_instant_win_20070917 | win Optin2 Optin1 CyberPowerPc JackLink Scoop CreateDate DOB Phone Zip State City Address Last First Email UserID
+spe_30daysofnights_hunthavoc_20070919 | Optin2 Optin1 PalmerCash Sony SonyStyle Logitech GoUrban DormBuys Vamp Scoop CreateDate Username DOB Gender Phone Zip State City Address Last First Email UserID
+spe_30daysofnight_20070716 | Optin CreateDate DOB Gender Password Username Email UserID
+spe_21_20071114 | Optin2 Optin1 Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+spe_2012_playlist_user | Optin3 Optin2 Optin1 Scoop CreateDate Playlist_id DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+spe_2012_playlist_all | Song ID
+spe_2012_playlist | CreateDate Song12 Song11 Song10 Song8 Song7 Song6 Song5 Song4 Song3 Song2 Song1 ID
+spe_2012_ihc_ambassador_users | RefInfoID Optin2 Optin1 Scoop photo FBID Password CreateDate DOB Gender Phone Zip State City Address2 Address Last First Email UserID
+spe_2012_ihc_20080719 | LotteryContact CommentType Comments Subscribe Continent Uniquecode CreateDate DOB Gender Email Last First UserID
+spe_2012_escape_20091119 | Optin2 Optin1 CruiseWest Scoop CreateDate Answer DOB Gender Phone Zip State City Address2 Address1 Last First Email UserID
+sonyopen_20061031 | Optin2 Hawaii Optin1 Scoop SonyStyle CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+seinfeld_votes_20071008 | create_date vote id
+scaremix_fbapp_users_20101130 | created optin2 optin1 scoop dob gender phone zip state city address email last first fbid id
+scaremix_fbapp_messages_20101130 | created status image description caption href name message id
+scaremix_fbapp_leaders_messages_20101130 | status message_id fbid id
+scaremix_fbapp_groups_20101130 | created member_id leader_id id
+salt_ios_sweepstakes | month_created week_created date_created status sphe_newsletter_optin gender mobile birthdate email zip_code state city street_address last_name first_name id
+runaway_mobilesweeps_20060912 | Optin2 Optin1 Scoop CreateDate DOB Gender CellPhone Phone Zip State City Address Last First Email UserID
+restless_fliptrack | Download ImageStatus FileExt CreateDate Hometown Caption Name FotoID UserID
+philbobaggins | correct uid id
+nickandnora_week | week end start id
+nickandnora_user | GuyEva Sony Optin2 Optin1 Ebook Scoop CreateDate Score Captain Team_ID DOB Gender Phone Zip State City Address2 Address Last First Email ID
+nickandnora_ticker_data | CreateDate Priority Target URL Text Header id
+nickandnora_team | Status_500 Status_300 Status_200 Status_100 Date_500 Date_300 Date_200 Date_100 Teamname ID
+nickandnora_score | createdate score week userid id
+nickandnora_administrators | access password id
+metreon_walkofgame | Cell Sms Metreon DOB Country Zip Email UserID
+koq_newegg_votes | create_date voteid id
+jumpingthebroom_phonecalls_20110325 | id
+hotticket_rent_ny_screenings | dob token email phone zip state city address1 last venue id
+gridirongang_redcarpet_20060802 | Optin2 Optin1 Scoop CreateDate DOB Zip State City Last First Email UserID
+ghostrider_questions_20060607 | UserID
+ghosthouse_optin | Carrier MobileNumber Email UserID
+gdc_2006 | CreateDate Source Ghostbusters Twenty_One Silence_Of_The_Lambs Jeepers_Creepers The_Good_The_Bad_The_Ugly Army_Of_Darkness Rocky_Balboa The_Covenant The_Priest Grudge_2 I_Dream_Of_Jeannie Jokers_Wild Pyramid Young_Restless Dating_Game Phone Name Email UserID
+fwdj_monster_interview_20051219 | Optin2 Optin1 Scoop Vote CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+facebook_walkhard_beacon_20071106 | CreateDate q4 q3 q2 q1 ID
+facebook_deweycox_bobble_20071102 | ID
+corp_sonypictures_greener_world_09 | UserID
+click_trl_20060614 | city phone userid
+classics_janeausten_20070725 | Scoop CreateDate DOB Gender Phone Zip State City Address Last First Email UserID
+classics_easyvirtue_20090512 | DOB Gender Phone Zip State City Address Last Email UserID
+classics_americanhardcore_20060831 | Optin2 Optin1 Scoop CreateDate DOB Gender Phone State Email UserID
+casinoroyaletrivia_20061009 | Optin2 Optin1 Scoop CreateDate DOB Gender CellPhone Phone Zip State City Address Last First Email UserID
+casinoroyale_questions_20060518 | Question CreateDate Last_Initial First UserID
+brothers_log | create_date aristotle sentry id
+boondocks_qa_20070914 | CreateDate Question Question_For UserID
+boleyn_user | Simon Optin2 Optin1 Britain Scoop CreateDate Score Captain Team_ID DOB Gender Phone Zip State City Address Last First Email ID
+boleyn_team | Status_400 Status_200 Date_400 Date_200 Teamname ID
+beautiful_people_nyo_20060330 | Optin2 Optin1 Scoop Orbitz NYO CreateDate Answer DOB Gender Phone Zip State City Address Last First Email UserID
+ad_feedback_answers | answer id
+ad_feedback | ad_id create_date comment q8 q7 q6 q5 q4 q3 q2 q1 id
+acrosstheuniverse_20070921 | CreateDate Feedback UserID
+Underworld_Game_Beta_20051214 | Optin3 Optin2 Optin1 CreateDate DOB Last First Email UserID
+21_beatthehouse_user_registration | receiveMoreInf lastRegistration receiveFromDazadi receiveFromSony dayTimePhone dateOfBirth gender zipCode state city address addressNoPob lname fname email id
+21_beatthehouse_admin_users | datereg active level pass username iduser
+21_beatthehouse_admin_session | lastlogin iduser datereg ip idsession
