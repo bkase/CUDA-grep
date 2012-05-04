@@ -418,7 +418,7 @@ re2post(char *re)
 	return buf;
 }
 
-
+/*
 void readFile(char *fileName, char ***lines, int *lineIndex) {
 	
 	FILE *fp = fopen(fileName, "r");
@@ -439,6 +439,7 @@ void readFile(char *fileName, char ***lines, int *lineIndex) {
 		(*lines)[(*lineIndex)] = line;	
 		(*lineIndex) ++;
 
+	
 		line = (char *) malloc(sizeof(char) * LINE_SIZE);	
 
 		if (*lineIndex == numLines-1) {
@@ -446,11 +447,74 @@ void readFile(char *fileName, char ***lines, int *lineIndex) {
 			(*lines) = (char **) realloc((*lines), sizeof(char *) * numLines);
 		}
 	}
+
+	exit(0);
 	(*lines)[(*lineIndex)] = line;	
 	
 	fclose(fp);
 }
+*/
+/*
+void readFile (char *fileName, char ***lines, int *lineIndex) {
 
+	FILE *fp = fopen(fileName, "r");
+	
+	int size = 100000 * sizeof (char) ;
+	int readSize = size;
+
+	char *head = (char *) malloc (sizeof (char) * size); 
+	char *line = head;
+
+	int numRead = 0;
+	while (!feof(fp) && (numRead = fread(line, sizeof(char), readSize, fp) > 0)) {	
+		readSize *= 2;
+		size = size + readSize;
+		head = (char *) realloc(head, size); 
+	
+		line = head + (size - readSize);	
+	}
+	line[numRead] = 0;	
+	printf("line %s", head);
+	exit(0);
+	*lines = (char **)  malloc (sizeof(char *) * 1); 
+	**lines = head;
+	*lineIndex = 1;
+}
+*/
+
+void readFile (char *fileName, char ***lines, int *lineIndex) {
+
+	FILE *fp = fopen(fileName, "r");
+	char *source = NULL;
+	if (fp != NULL) {
+		/* Go to the end of the file. */
+		if (fseek(fp, 0L, SEEK_END) == 0) {
+			/* Get the size of the file. */
+			long bufsize = ftell(fp);
+			if (bufsize == -1) { /* Error */ }
+
+			/* Allocate our buffer to that size. */
+			source = (char *) malloc(sizeof(char) * (bufsize + 1));
+
+			/* Go back to the start of the file. */
+			if (fseek(fp, 0L, SEEK_SET) == 0) { /* Error */ }
+
+			/* Read the entire file into memory. */
+			size_t newLen = fread(source, sizeof(char), bufsize, fp);
+			if (newLen == 0) {
+				fputs("Error reading file", stderr);
+			} else {
+				source[++newLen] = '\0'; /* Just to be safe. */
+			}
+		}
+		fclose(fp);
+	}
+
+	*lines = (char **)  malloc (sizeof(char *) * 1); 
+	**lines = source;
+	*lineIndex = 1;
+
+}
 
 void usage(const char* progname) {
     printf("Usage: %s [options] [pattern] \n", progname);

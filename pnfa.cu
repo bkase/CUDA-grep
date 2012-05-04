@@ -1,10 +1,10 @@
 #include "putil.cu" 
 
-__device__ inline void paddstate(List*, State*, List*, int *);
-__device__ inline void pstep(List*, int, List*, int *);
+__device__ inline void paddstate(List*, State*, List*);
+__device__ inline void pstep(List*, int, List *);
 
 
-__device__ char buf[8000];
+__device__ __shared__ char buf[8000];
 
 __device__ inline int pstrlen(char *str) {
 	int len = 0; 
@@ -105,13 +105,12 @@ __device__ inline char * pre2post(char *re)
 
 /* Compute initial state list */
 __device__ inline List*
-pstartlist(State *start, List *l, int *dlistid)
+pstartlist(State *start, List *l)
 {
 	l->n = 0;
-	(*dlistid)++;
 
 	List addStartState;
-	paddstate(l, start, &addStartState, dlistid);
+	paddstate(l, start, &addStartState);
 	return l;
 }
 
@@ -130,7 +129,7 @@ ispmatch(List *l)
 
 /* Add s to l, following unlabeled arrows. */
 	__device__ inline void
-paddstate(List *l, State *s, List *addStateList, int *dlistid)
+paddstate(List *l, State *s, List *addStateList)
 {	
 	addStateList->n = 0;
 	PUSH(addStateList, s);
@@ -144,12 +143,10 @@ paddstate(List *l, State *s, List *addStateList, int *dlistid)
 		//one instance of the state is added to the list
 		if(s == NULL);
 		else if (s->c == Split) {
-			s->lastlist = *dlistid; 
 			PUSH(addStateList, s->out);
 			PUSH(addStateList, s->out1);	
 		}
 		else {
-			s->lastlist = *dlistid; 
 			l->s[l->n++] = s;
 		}
 	}
@@ -161,34 +158,33 @@ paddstate(List *l, State *s, List *addStateList, int *dlistid)
  * to create next NFA state set nlist.
  */
 __device__ inline void
-pstep(List *clist, int c, List *nlist, int *dlistid)
+pstep(List *clist, int c, List *nlist)
 {
 	int i;
 	State *s;
-	(*dlistid)++;
 	nlist->n = 0;
 	for(i=0; i<clist->n; i++){
 		s = clist->s[i];
 	
 		if(s->c == c || s->c == Any){
 			List addStartState;
-			paddstate(nlist, s->out, &addStartState, dlistid);
+			paddstate(nlist, s->out, &addStartState);
 		}
 	}
 }
 
 /* Run NFA to determine whether it matches s. */
 __device__ inline int
-pmatch(State *start, char *s, List *dl1, List *dl2, int * dlistid)
+pmatch(State *start, char *s, List *dl1, List *dl2)
 {
 	int c;
 	List *clist, *nlist, *t;
 
-	clist = pstartlist(start, dl1, dlistid);
+	clist = pstartlist(start, dl1);
 	nlist = dl2;
 	for(; *s; s++){
 		c = *s & 0xFF;
-		pstep(clist, c, nlist, dlistid);
+		pstep(clist, c, nlist);
 		t = clist; clist = nlist; nlist = t;	// swap clist, nlist 
 	
 		// check for a match in the middle of the string
@@ -200,56 +196,61 @@ pmatch(State *start, char *s, List *dl1, List *dl2, int * dlistid)
 }
 
 /* Check for a string match at all possible start positions */
-__device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2, int *dlistid) { 
-	int isMatch = pmatch(start, s, dl1, dl2, dlistid);
+__device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2) { 
+	int isMatch = pmatch(start, s, dl1, dl2);
 	int index = 0;
 	int len = pstrlen(s);	
 	while (!isMatch && index < len) {
-		isMatch = pmatch(start, s + index, dl1, dl2, dlistid);
+		isMatch = pmatch(start, s + index, dl1, dl2);
 		index ++;
 	}
 	return isMatch;
 }
 
+__device__ __shared__ State *st;
+__device__ __shared__ State s[100];
+
 __global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs, int time, char *regexLines, u32 *regexTable, unsigned char * devResult) {
+	
+		int j = 0;	
+		if (threadIdx.x == 0) {
+			pre2post(regexLines);
 
-	for (int j = 0; j < numRegexs; j++) {
+			char *postfix = buf;
 
-		pre2post(regexLines);
+			pnstate = 0;
+			states = s;
+		
+			st = ppost2nfa(postfix);
+		}
 
-		char *postfix = buf;
-
-		State s[100];
-		pnstate = 0;
-		states = s;
-
-		State *st = ppost2nfa(postfix);
+		__syncthreads();
 
 		List d1;
 		List d2;	
-		int dlistid;
 
 
 		int i;
 		for (i = blockIdx.x * blockDim.x + threadIdx.x; i < numLines; i += gridDim.x * blockDim.x) { 
 
 			char * lineSegment = bigLine + tableOfLineStarts[i];
-
-			if (panypmatch(st, lineSegment, &d1, &d2, &dlistid)) 
-				devResult[ i + numLines * j ] = 1;
+			if (panypmatch(st, lineSegment, &d1, &d2)) 
+				devResult[i] = 1;
 			else
-				devResult[ i + numLines * j ] = 0;
-		
+				devResult[i] = 0;
+			
 		}
-	}
 }
 
-void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs, int time, char * regexLines, u32 *regexTable, char **lines) {
+void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs, int time, char * regexLines, u32 *regexTable, char **lines, u32 *hostLineStarts) {
+
+	
+	cudaFuncSetCacheConfig(parallelMatch, cudaFuncCachePreferShared);
 
 	unsigned char *devResult;
 	cudaMalloc(&devResult, numLines * sizeof(unsigned char) * numRegexs);
 
-	parallelMatch<<<256, 256>>>(bigLine, tableOfLineStarts, numLines, numRegexs, time, regexLines, regexTable, devResult);
+	parallelMatch<<<512, 160>>>(bigLine, tableOfLineStarts, numLines, numRegexs, time, regexLines, regexTable, devResult);
 	cudaThreadSynchronize();
 
     cudaError_t error = cudaGetLastError();
@@ -263,9 +264,7 @@ void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs
 
 	for (int i = 0; i < numLines * numRegexs; i++) {
 		if(hostResult[i] == 1) 
-			PRINT(time, "%s", lines[i % numLines]);
-		else 
-			PRINT(time, "%s", lines[i % numLines]);
+			PRINT(time, "%s\n", lines[0] + hostLineStarts[i]); //[i % numLines]);
 	}
 	
 	cudaFree(&devResult);

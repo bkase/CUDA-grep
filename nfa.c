@@ -147,11 +147,32 @@ main(int argc, char **argv)
 
 			char * device_line;
 			u32 * device_table;
-			copyStringsToDevice(lines, numLines, &device_line, &device_table);
+			//copyStringsToDevice(lines, numLines, &device_line, &device_table);
+			u32 * table = (u32 *) malloc(sizeof(u32) * strlen(*lines));
+			table[0] = 0;
+			int numLines = 0;
+	
+			int len = strlen(lines[0]);
+			for (int i = 0; i < len; i++) {
+				if ((lines[0])[i] == '\n') {
+					table[++numLines] = i+1;
+					lines[0][i] = 0;		
+				
+				}
+			}
+			-- numLines;	
+	
+			
+			cudaMalloc(&device_table, sizeof (u32) * (len ));		
+			cudaMalloc(&device_line, sizeof (char) * (len + 1));		
+
+			cudaMemcpy(device_table, table, sizeof(u32) * (len), cudaMemcpyHostToDevice);
+			cudaMemcpy(device_line, *lines, sizeof(char) * (len + 1), cudaMemcpyHostToDevice);
+			
 			endCopyStringsToDevice = CycleTimer::currentSeconds();
 
 			u32 numRegexes = 1;
-			pMatch(device_line, device_table, numLines, 1, timerOn, device_regex, &numRegexes, lines);
+			pMatch(device_line, device_table, numLines, 1, timerOn, device_regex, &numRegexes, lines, table);
 			endPMatch = CycleTimer::currentSeconds();
 		}
 		// match a bunch of regexs
@@ -180,26 +201,14 @@ main(int argc, char **argv)
 
 			endCopyStringsToDevice = CycleTimer::currentSeconds();
 
-			pMatch(device_line, device_table, numLines, numRegexs, timerOn, deviceRegexLine, deviceRegexTable, lines);
+			pMatch(device_line, device_table, numLines, numRegexs, timerOn, deviceRegexLine, deviceRegexTable, lines, device_table);
 			endPMatch = CycleTimer::currentSeconds();
 		
 		}
 	
 	}
 
-	// free allocations
-	if (lines != NULL) {
-		for (i = 0; i < numLines; i++) 
-			free(lines[i]);
-		free(lines);
-	}
-
-	if (regexs != NULL) {
-		for (int i = 0; i < numRegexs; i++) 
-			free(regexs[i]);
-		free(regexs);
-	}
-
+	
 	// print timing details
 	if (timerOn && !parallel) {
 		printf("\nSequential Time taken %.4f \n\n", (endTime - startTime));

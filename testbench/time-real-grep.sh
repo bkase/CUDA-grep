@@ -5,4 +5,4 @@ if [[ $# -ne 2 ]]; then
     exit 1
 fi
 
-time grep $1 $2
+time egrep $1 $2
