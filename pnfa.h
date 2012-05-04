@@ -17,6 +17,6 @@ __device__ State pmatchstate = { Match };	/* matching state */
 // host function which calls parallelNFAKernel
 void parallelNFA(char *postfix);
 // host function which calls parallelMatchingKernel
-void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int time, char *regexLines, u32 *regexTable, char **lines);
+void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs, int time, char *regexLines, u32 *regexTable, char **lines);
  
 #endif

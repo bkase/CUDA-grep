@@ -151,7 +151,7 @@ main(int argc, char **argv)
 			endCopyStringsToDevice = CycleTimer::currentSeconds();
 
 			u32 numRegexes = 1;
-			pMatch(device_line, device_table, numLines, timerOn, device_regex, &numRegexes, lines);
+			pMatch(device_line, device_table, numLines, 1, timerOn, device_regex, &numRegexes, lines);
 			endPMatch = CycleTimer::currentSeconds();
 		}
 		// match a bunch of regexs
@@ -180,7 +180,7 @@ main(int argc, char **argv)
 
 			endCopyStringsToDevice = CycleTimer::currentSeconds();
 
-			pMatch(device_line, device_table, numLines, timerOn, deviceRegexLine, deviceRegexTable, lines);
+			pMatch(device_line, device_table, numLines, numRegexs, timerOn, deviceRegexLine, deviceRegexTable, lines);
 			endPMatch = CycleTimer::currentSeconds();
 		
 		}
