@@ -35,7 +35,10 @@ int checkCmdLine(int argc, char **argv, char **fileName, char **regexFile, int *
 		exit(EXIT_SUCCESS);
 	}
 
-    simplifyRe(argv[regexIndex], &builder);
+    char * regexBuffer = (char*)malloc(strlen(argv[regexIndex])+1);
+    strcpy(regexBuffer, argv[regexIndex]);
+    simplifyRe(&regexBuffer, &builder);
+    free(regexBuffer);
 
     post = re2post(builder.re);
 	if(post == NULL){
@@ -134,7 +137,10 @@ main(int argc, char **argv)
 		
 		// match just a single regex
 		if (regexFile == NULL) {
-			simplifyRe(argv[regexIndex], &builder);
+            char * regexBuffer = (char*)malloc(strlen(argv[regexIndex])+1);
+            strcpy(regexBuffer, argv[regexIndex]);
+			simplifyRe(&regexBuffer, &builder);
+            free(regexBuffer);
 	
 			char *device_regex;
 			int postsize = (strlen(builder.re) + 1) * sizeof (char);
@@ -187,7 +193,11 @@ main(int argc, char **argv)
 				// get rid of the new line
 				regexs[i][strlen(regexs[i]) - 1] = 0;
 			
-				simplifyRe(regexs[i], &builder);
+                char * regexBuffer = (char*)malloc(strlen(regexs[i])+1);
+                strcpy(regexBuffer, regexs[i]);
+                simplifyRe(&regexBuffer, &builder);
+                free(regexBuffer);
+
 				regexs[i] = builder.re;
 			}
 		

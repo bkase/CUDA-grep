@@ -1,6 +1,8 @@
 #include "nfautil.h"
 #include "regex.h"
 
+#define DEREF(arr,i) ((*(arr))[(i)])
+
 /* constructor for SimpleReBuilder */
 void simpleReBuilder(SimpleReBuilder ** builder, int len) {
     (*builder)->re = (char *)malloc(len+3);
@@ -24,23 +26,53 @@ char * stringify(char * nonull, int j) {
     return proper;
 }
 
-void handle_escape(SimpleReBuilder * builder, char * complexRe, int len, int * bi, int * ci) {
+void insertIntoComplexRe(char ** complexRe, int where, int * len, char * toInsert) {
+    char * buf;
+    int insertLen = strlen(toInsert);
+    int i = where;
+
+    /* enough space for complexRe+the new range */
+    *len = *len+(insertLen+1);
+    *complexRe = (char*)realloc(*complexRe, *len);
+
+    /* buffer the rest */
+    buf = (char*)malloc(*len);
+    for (int k = i+2; k < *len-(insertLen+1); k++) {
+        buf[k-(i+2)] = DEREF(complexRe,k);
+    }
+
+    /* insert the string */
+
+    for (int k = 0; k < insertLen; k++) {
+        DEREF(complexRe, i++) = toInsert[k];
+    }
+
+    /* put the buffer back in */
+
+    for (int k = i; k < *len; k++) {
+        DEREF(complexRe,k) = buf[k-i];
+    }
+
+    free(buf);
+}
+
+void handle_escape(SimpleReBuilder * builder, char ** complexRe, int * len, int * bi, int * ci) {
 
     int i = *ci;
     int j = *bi;
 
-    if (i+1 > len)
+    if (i+1 > *len)
         regex_error(i);
 
     i++; //go to escaped character and ignore '/'
-    switch(complexRe[i]) {
+    switch(DEREF(complexRe,i)) {
         
         case 'd':
-            printf("digits here\n");
+            insertIntoComplexRe(complexRe, --i, len, "[0-9]");
             break;
 
         case 'w':
-            printf("word character here\n");
+            insertIntoComplexRe(complexRe, --i, len, "([a-z]|_)");
             break;
 
         /* ... see www.cs.tut.fi/~jkorpela/perl/regexp.html */
@@ -48,7 +80,7 @@ void handle_escape(SimpleReBuilder * builder, char * complexRe, int len, int * b
         // default is just ignoring the backslash and taking the 
         // LITERAL character after no matter what
         default:
-            builder->re[j++] = complexRe[i++];
+            builder->re[j++] = *complexRe[i++];
             break;
     }
 
@@ -86,17 +118,17 @@ void handle_range(SimpleReBuilder * builder, char * complexRe, int len, int * bi
     *ci = i+4;
 }
 
-SimpleReBuilder * simplifyRe(char * complexRe, SimpleReBuilder * builder) {
+SimpleReBuilder * simplifyRe(char ** complexRe, SimpleReBuilder * builder) {
 
-    int len = strlen(complexRe);
+    int len = strlen(*complexRe);
     simpleReBuilder(&builder, len);
 
     int i,j;
     for (i = 0, j = 0; i < len; i++, j++) {
-        switch(complexRe[i]) {
+        switch(DEREF(complexRe, i)) {
             
             case '\\':
-                handle_escape(builder, complexRe, len, &j, &i);
+                handle_escape(builder, complexRe, &len, &j, &i);
                 break;
 
             case '.':
@@ -128,11 +160,11 @@ SimpleReBuilder * simplifyRe(char * complexRe, SimpleReBuilder * builder) {
                 break;
 
             case '[':
-                handle_range(builder, complexRe, len, &j, &i);
+                handle_range(builder, *complexRe, len, &j, &i);
                 break;
 
             default:
-                builder->re[j] = complexRe[i];
+                builder->re[j] = DEREF(complexRe,i);
                 break;
         }
 
