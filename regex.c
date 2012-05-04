@@ -66,13 +66,25 @@ void handle_escape(SimpleReBuilder * builder, char ** complexRe, int * len, int 
 
     i++; //go to escaped character and ignore '/'
     switch(DEREF(complexRe,i)) {
+
+        case 't':
+            insertIntoComplexRe(complexRe, --i, len, "\t");
+            break;
+
+        case 'n':
+            insertIntoComplexRe(complexRe, --i, len, "\n");
+            break;
         
         case 'd':
             insertIntoComplexRe(complexRe, --i, len, "[0-9]");
             break;
 
         case 'w':
-            insertIntoComplexRe(complexRe, --i, len, "([a-z]|_)");
+            insertIntoComplexRe(complexRe, --i, len, "([a-z]|[A-Z]|_)");
+            break;
+
+        case 's':
+            insertIntoComplexRe(complexRe, --i, len, "( |\t|\n)");
             break;
 
         /* ... see www.cs.tut.fi/~jkorpela/perl/regexp.html */

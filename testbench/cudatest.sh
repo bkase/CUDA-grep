@@ -12,6 +12,9 @@ teststrings=(
 "\?" "\|" "\+" "\*" "\." "\.\?\|\+\*" 
 #Random tests
 ".*\?" "t*hi.\?"
+#Test for escaped classes
+# egrep doesn't understand \d "\d"
+"a.*\s"
 );
 
 date >> RESULTS
