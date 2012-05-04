@@ -26,42 +26,47 @@ char * stringify(char * nonull, int j) {
     return proper;
 }
 
+void insertIntoComplexRe(char ** complexRe, int where, int * len, char * toInsert) {
+    char * buf;
+    int insertLen = strlen(toInsert);
+    int i = where;
+
+    /* enough space for complexRe+the new range */
+    *len = *len+6;
+    *complexRe = (char*)realloc(*complexRe, *len);
+
+    /* buffer the rest */
+    buf = (char*)malloc(*len);
+    for (int k = i; k < *len-6; k++) {
+        buf[k-i] = DEREF(complexRe,k);
+    }
+
+    /* insert the string */
+    for (int k = 0; k < insertLen; k++) {
+        DEREF(complexRe, i++) = toInsert[k];
+    }
+
+    /* put the buffer back in */
+    for (int k = i; k < *len; k++) {
+        DEREF(complexRe,k) = buf[k-i+1];
+    }
+
+    free(buf);
+}
+
 void handle_escape(SimpleReBuilder * builder, char ** complexRe, int * len, int * bi, int * ci) {
 
     int i = *ci;
     int j = *bi;
-    int oldI;
 
     if (i+1 > *len)
         regex_error(i);
 
-    oldI = ++i; //go to escaped character and ignore '/'
+    i++; //go to escaped character and ignore '/'
     switch(DEREF(complexRe,i)) {
         
         case 'd':
-            char * buf;
-            /* enough space for complexRe+the new range */
-            *len = *len+6;
-            *complexRe = (char*)realloc(*complexRe, *len);
-
-
-
-            buf = (char*)malloc(*len);
-            for (int k = i; k < *len-6; k++) {
-                buf[k-i] = DEREF(complexRe,k);
-            }
-            DEREF(complexRe,i++) = '[';
-            DEREF(complexRe,i++) = '0';
-            DEREF(complexRe,i++) = '-';
-            DEREF(complexRe,i++) = '9';
-            DEREF(complexRe,i++) = ']';
-            for (int k = i; k < *len; k++) {
-                DEREF(complexRe,k) = buf[k-i+1];
-            }
-
-            i = oldI;
-            
-            free(buf);
+            insertIntoComplexRe(complexRe, i, len, "[0-9]");
             break;
 
         case 'w':
