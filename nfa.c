@@ -240,11 +240,11 @@ main(int argc, char **argv)
 				}
 			}
 			-- numRegexs;	
-			/*	
+				
 			for (int i = 0; i < numRegexs; i++) {
-				printf("%s\n", regexs[0] + host_regex_table[i]);
+			//	printf("%s\n", regexs[0] + host_regex_table[i]);
 			}
-			*/
+			
 
 			cudaMalloc(&device_regex_table, sizeof (u32) * (len ));		
 			cudaMalloc(&device_regex, sizeof (char) * (len + 1));		

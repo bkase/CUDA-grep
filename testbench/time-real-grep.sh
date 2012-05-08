@@ -1,8 +1,13 @@
 #!/bin/bash
 
-if [[ $# -ne 2 ]]; then
-    echo "usage: $0 <regex> <file>"
-    exit 1
-fi
+FILE=./sample
 
-time egrep $1 $2
+#if [[ $# -ne 2 ]]; then
+#    echo "usage: $0 <regex> <file>"
+#    exit 1
+#fi
+
+while read line
+do
+	time egrep "^$line$" ./newlua
+done < $FILE
