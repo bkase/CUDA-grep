@@ -188,8 +188,8 @@ pmatch(State *start, char *s, List *dl1, List *dl2)
 		t = clist; clist = nlist; nlist = t;	// swap clist, nlist 
 	
 		// check for a match in the middle of the string
-		if (ispmatch(clist))
-			return 1;
+		//	if (ispmatch(clist))
+			//return 1;
 
 	}
 	return ispmatch(clist);
@@ -198,22 +198,27 @@ pmatch(State *start, char *s, List *dl1, List *dl2)
 /* Check for a string match at all possible start positions */
 __device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2) { 
 	int isMatch = pmatch(start, s, dl1, dl2);
-	int index = 0;
+/*	int index = 0;
 	int len = pstrlen(s);	
 	while (!isMatch && index < len) {
 		isMatch = pmatch(start, s + index, dl1, dl2);
 		index ++;
 	}
-	return isMatch;
+*/	return isMatch;
+
 }
 
 __device__ __shared__ State *st;
 __device__ __shared__ State s[100];
 
 __global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs, int time, char *regexLines, u32 *regexTable, unsigned char * devResult) {
-	
-		int j = 0;	
-		if (threadIdx.x == 0) {
+
+		for (int i = 0; i < numRegexs; i++) {
+			printf("%s\n", regexLines + regexTable[i]);
+
+		}
+
+		/*if (threadIdx.x == 0) {
 			pre2post(regexLines);
 
 			char *postfix = buf;
@@ -239,7 +244,7 @@ __global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int numLi
 			else
 				devResult[i] = 0;
 			
-		}
+		}*/
 }
 
 void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs, int time, char * regexLines, u32 *regexTable, char **lines, u32 *hostLineStarts) {
@@ -250,7 +255,8 @@ void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs
 	unsigned char *devResult;
 	cudaMalloc(&devResult, numLines * sizeof(unsigned char) * numRegexs);
 
-	parallelMatch<<<512, 160>>>(bigLine, tableOfLineStarts, numLines, numRegexs, time, regexLines, regexTable, devResult);
+	printf("Launched\n");
+	parallelMatch<<<1, 1>>>(bigLine, tableOfLineStarts, numLines, numRegexs, time, regexLines, regexTable, devResult);
 	cudaThreadSynchronize();
 
     cudaError_t error = cudaGetLastError();
@@ -259,14 +265,16 @@ void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs
         exit(-1);
     }
 
-	unsigned char *hostResult = (unsigned char *) malloc (numLines * sizeof(unsigned char) * numRegexs);
-	cudaMemcpy(hostResult, devResult, numLines * sizeof(unsigned char) * numRegexs, cudaMemcpyDeviceToHost);
+	if (!time) {
+		unsigned char *hostResult = (unsigned char *) malloc (numLines * sizeof(unsigned char) * numRegexs);
+		cudaMemcpy(hostResult, devResult, numLines * sizeof(unsigned char) * numRegexs, cudaMemcpyDeviceToHost);
 
-	for (int i = 0; i < numLines * numRegexs; i++) {
-		if(hostResult[i] == 1) 
-			PRINT(time, "%s\n", lines[0] + hostLineStarts[i]); //[i % numLines]);
+		for (int i = 0; i < numLines * numRegexs; i++) {
+			if(hostResult[i] == 1) 
+				PRINT(time, "%s\n", lines[0] + hostLineStarts[i]); //[i % numLines]);
+		}
 	}
-	
+
 	cudaFree(&devResult);
 	cudaFree(&bigLine);
     cudaFree(&tableOfLineStarts);
