@@ -37,6 +37,7 @@ do
 		else
 			pass=0
 			echo "Test Failed $testcase"
+            echo "That was $testcase in $file" >> RESULTS
 		fi
 	done
 done
