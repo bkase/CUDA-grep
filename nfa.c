@@ -198,13 +198,12 @@ main(int argc, char **argv)
 	
 			int len = strlen(lines[0]);
 			for (int i = 0; i < len; i++) {
-				if ((lines[0])[i] == '\n') {
+				if ((lines[0])[i] == '\n' || lines[0][i] == 0) {
 					host_line_table[++num_lines] = i+1;
 					lines[0][i] = 0;		
 				
 				}
 			}
-			-- num_lines;	
 	
 				
 			cudaMalloc(&device_line_table, sizeof (u32) * (len ));		
@@ -219,30 +218,24 @@ main(int argc, char **argv)
 			host_regex_table[0] = 0;
 			int num_regexs = 0;
 	
-			//printf("REGEXS %s\n", regexs[0]);
 			len = strlen(regexs[0]);
 			for (int i = 0; i < len; i++) {
-				if ((regexs[0])[i] == '\n') {
-					host_regex_table[++num_regexs] = i+1;
-					regexs[0][i] = 0;		
+				if (regexs[0][i] == '\n' || regexs[0][i] == 0) {
 				
-			/*
-            	    char * regexBuffer = (char*)malloc(strlen(regexs[host_regex_table[num_regexs-1]])+1);
-               		 strcpy(regexBuffer, regexs[0][host_regex_table[num_regexs-1]]);
+					host_regex_table[++num_regexs] = i+1;
+					regexs[0][i] = 0;			
+			
+            	    char * regexBuffer = (char*)malloc(strlen(regexs[0] + host_regex_table[num_regexs-1])+1);
+               		strcpy(regexBuffer, regexs[0] + host_regex_table[num_regexs-1]);
                 	simplifyRe(&regexBuffer, &builder);
                 	free(regexBuffer);
 
-					regexs[0] + host_regex_table[num_regexs-1] = builder.re;
-			*/
-			
+					strcpy(regexs[0] + host_regex_table[num_regexs-1],builder.re);
+				
 				}
 			}
-			-- num_regexs;	
 				
-			for (int i = 0; i < num_regexs; i++) {
-			//	printf("%s\n", regexs[0] + host_regex_table[i]);
-			}
-			
+			//for (int i = 0; i < num_regexs; i++) {}	
 
 			cudaMalloc(&device_regex_table, sizeof (u32) * (len ));		
 			cudaMalloc(&device_regex, sizeof (char) * (len + 1));		
