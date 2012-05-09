@@ -188,8 +188,8 @@ pmatch(State *start, char *s, List *dl1, List *dl2)
 		t = clist; clist = nlist; nlist = t;	// swap clist, nlist 
 	
 		// check for a match in the middle of the string
-		if (ispmatch(clist))
-			return 1;
+		//	if (ispmatch(clist))
+			//return 1;
 
 	}
 	return ispmatch(clist);
@@ -198,47 +198,51 @@ pmatch(State *start, char *s, List *dl1, List *dl2)
 /* Check for a string match at all possible start positions */
 __device__ inline int panypmatch(State *start, char *s, List *dl1, List *dl2) { 
 	int isMatch = pmatch(start, s, dl1, dl2);
-	int index = 0;
+/*	int index = 0;
 	int len = pstrlen(s);	
 	while (!isMatch && index < len) {
 		isMatch = pmatch(start, s + index, dl1, dl2);
 		index ++;
 	}
-	return isMatch;
+*/	return isMatch;
+
 }
 
 __device__ __shared__ State *st;
 __device__ __shared__ State s[100];
 
 __global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs, int time, char *regexLines, u32 *regexTable, unsigned char * devResult) {
-	
-		int j = 0;	
-		if (threadIdx.x == 0) {
-			pre2post(regexLines);
 
-			char *postfix = buf;
+		for (int j = 0; j < numRegexs; j++) {
+			//printf("%s\n", regexLines + regexTable[i]);
 
-			pnstate = 0;
-			states = s;
-		
-			st = ppost2nfa(postfix);
-		}
+			if (threadIdx.x == 0) {
+				pre2post(regexLines + regexTable[j]);
 
-		__syncthreads();
+				char *postfix = buf;
 
-		List d1;
-		List d2;	
+				pnstate = 0;
+				states = s;
+
+				st = ppost2nfa(postfix);
+			}
+
+			__syncthreads();
+
+			List d1;
+			List d2;	
 
 
-		int i;
-		for (i = blockIdx.x * blockDim.x + threadIdx.x; i < numLines; i += gridDim.x * blockDim.x) { 
+			int i;
+			for (i = blockIdx.x * blockDim.x + threadIdx.x; i < numLines; i += gridDim.x * blockDim.x) { 
 
-			char * lineSegment = bigLine + tableOfLineStarts[i];
-			if (panypmatch(st, lineSegment, &d1, &d2)) 
-				devResult[i] = 1;
-			else
-				devResult[i] = 0;
-			
+				char * lineSegment = bigLine + tableOfLineStarts[i];
+				if (panypmatch(st, lineSegment, &d1, &d2)) 
+					devResult[j * numLines + i] = 1;
+				else
+					devResult[j * numLines + i] = 0;
+
+			}
 		}
 }
 
@@ -259,14 +263,16 @@ void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs
         exit(-1);
     }
 
-	unsigned char *hostResult = (unsigned char *) malloc (numLines * sizeof(unsigned char) * numRegexs);
-	cudaMemcpy(hostResult, devResult, numLines * sizeof(unsigned char) * numRegexs, cudaMemcpyDeviceToHost);
+	if (!time) {
+		unsigned char *hostResult = (unsigned char *) malloc (numLines * sizeof(unsigned char) * numRegexs);
+		cudaMemcpy(hostResult, devResult, numLines * sizeof(unsigned char) * numRegexs, cudaMemcpyDeviceToHost);
 
-	for (int i = 0; i < numLines * numRegexs; i++) {
-		if(hostResult[i] == 1) 
-			PRINT(time, "%s\n", lines[0] + hostLineStarts[i]); //[i % numLines]);
+		for (int i = 0; i < numLines * numRegexs; i++) {
+			if(hostResult[i] == 1) 
+				PRINT(time, "%s\n", lines[0] + hostLineStarts[i % numLines]); //[i % numLines]);
+		}
 	}
-	
+
 	cudaFree(&devResult);
 	cudaFree(&bigLine);
     cudaFree(&tableOfLineStarts);

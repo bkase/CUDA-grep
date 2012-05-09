@@ -31,6 +31,7 @@ do
 	for ((i=0; i<len; i++))
 	do
 		testcase=${teststrings[$i]}
+		#etestcase="^$testcase$"
         echo -n '.'
 		if diff <(sort <(../nfa -f $file $testcase)) <(sort <(egrep $testcase $file)) >> RESULTS; then
 			cat /dev/null
