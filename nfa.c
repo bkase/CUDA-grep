@@ -79,7 +79,7 @@ main(int argc, char **argv)
 {	
 	int i, timerOn, parallel = 1;
 	char *fileName = NULL, *regexFile = NULL, **lines = NULL, **regexs = NULL; 
-	int numLines, numRegexs;
+	int num_lines, num_regexs;
 			
 	SimpleReBuilder builder;
 	State *start;
@@ -108,9 +108,9 @@ main(int argc, char **argv)
 		else {
 			startTime = CycleTimer::currentSeconds();
 			
-			readFile(fileName, &lines, &numLines); 	
-            unsigned char result[numLines];
-			for (i = 0; i < numLines; i++) { 
+			readFile(fileName, &lines, &num_lines); 	
+            unsigned char result[num_lines];
+			for (i = 0; i < num_lines; i++) { 
 				if (anyMatch(start, lines[i]))  
 					result[i] = 1;
 				else
@@ -119,7 +119,7 @@ main(int argc, char **argv)
 
             endTime = CycleTimer::currentSeconds();
 	
-			for ( i = 0; i < numLines; i++) {
+			for ( i = 0; i < num_lines; i++) {
 				if(result[i] == 1)
 					printf("%s", lines[i]);
 			}
@@ -148,100 +148,98 @@ main(int argc, char **argv)
 			cudaMemcpy(device_regex, builder.re, postsize, cudaMemcpyHostToDevice);	
 		
 			startTime = CycleTimer::currentSeconds();	
-			readFile(fileName, &lines, &numLines); 	 
+			readFile(fileName, &lines, &num_lines); 	 
 			endReadFile = CycleTimer::currentSeconds();
 
 			char * device_line;
-			u32 * device_table;
-			//copyStringsToDevice(lines, numLines, &device_line, &device_table);
+			u32 * device_line_table;
+			//copyStringsToDevice(lines, num_lines, &device_line, &device_line_table);
 			u32 * table = (u32 *) malloc(sizeof(u32) * strlen(*lines));
 			table[0] = 0;
-			int numLines = 0;
+			int num_lines = 0;
 	
 			int len = strlen(lines[0]);
 			for (int i = 0; i < len; i++) {
 				if ((lines[0])[i] == '\n') {
-					table[++numLines] = i+1;
+					table[++num_lines] = i+1;
 					lines[0][i] = 0;		
 				
 				}
 			}
-			-- numLines;	
+			-- num_lines;	
 	
 			
-			cudaMalloc(&device_table, sizeof (u32) * (len ));		
+			cudaMalloc(&device_line_table, sizeof (u32) * (len ));		
 			cudaMalloc(&device_line, sizeof (char) * (len + 1));		
 
-			cudaMemcpy(device_table, table, sizeof(u32) * (len), cudaMemcpyHostToDevice);
+			cudaMemcpy(device_line_table, table, sizeof(u32) * (len), cudaMemcpyHostToDevice);
 			cudaMemcpy(device_line, *lines, sizeof(char) * (len + 1), cudaMemcpyHostToDevice);
 			
 			endCopyStringsToDevice = CycleTimer::currentSeconds();
 
 			u32 numRegexes = 1;
-			pMatch(device_line, device_table, numLines, 1, timerOn, device_regex, &numRegexes, lines, table);
+			pMatch(device_line, device_line_table, num_lines, 1, timerOn, device_regex, &numRegexes, lines, table);
 			endPMatch = CycleTimer::currentSeconds();
 		}
 		// match a bunch of regexs
 		else {	
 			startTime = CycleTimer::currentSeconds();	
-			readFile(regexFile, &regexs, &numRegexs); 	 
-			readFile(fileName, &lines, &numLines); 	 
+			readFile(regexFile, &regexs, &num_regexs); 	 
+			readFile(fileName, &lines, &num_lines); 	 
 			endReadFile = CycleTimer::currentSeconds();
 
 	
 			char * device_line;
-			u32 * device_table;
-			//copyStringsToDevice(lines, numLines, &device_line, &device_table);
-			u32 * table = (u32 *) malloc(sizeof(u32) * strlen(*lines));
-			table[0] = 0;
-			int numLines = 0;
+			u32 * device_line_table;
+			//copyStringsToDevice(lines, num_lines, &device_line, &device_line_table);
+			u32 * host_line_table = (u32 *) malloc(sizeof(u32) * strlen(*lines));
+			host_line_table[0] = 0;
+			int num_lines = 0;
 	
 			int len = strlen(lines[0]);
 			for (int i = 0; i < len; i++) {
 				if ((lines[0])[i] == '\n') {
-					table[++numLines] = i+1;
+					host_line_table[++num_lines] = i+1;
 					lines[0][i] = 0;		
 				
 				}
 			}
-			-- numLines;	
+			-- num_lines;	
 	
 				
-			cudaMalloc(&device_table, sizeof (u32) * (len ));		
+			cudaMalloc(&device_line_table, sizeof (u32) * (len ));		
 			cudaMalloc(&device_line, sizeof (char) * (len + 1));		
 
-			cudaMemcpy(device_table, table, sizeof(u32) * (len), cudaMemcpyHostToDevice);
+			cudaMemcpy(device_line_table, host_line_table, sizeof(u32) * (len), cudaMemcpyHostToDevice);
 			cudaMemcpy(device_line, *lines, sizeof(char) * (len + 1), cudaMemcpyHostToDevice);
 			
 			char * device_regex;
 			u32 * device_regex_table;
 			u32 * host_regex_table = (u32 *) malloc(sizeof(u32) * strlen(*regexs));
 			host_regex_table[0] = 0;
-			int numRegexs = 0;
+			int num_regexs = 0;
 	
-
 			//printf("REGEXS %s\n", regexs[0]);
 			len = strlen(regexs[0]);
 			for (int i = 0; i < len; i++) {
 				if ((regexs[0])[i] == '\n') {
-					host_regex_table[++numRegexs] = i+1;
+					host_regex_table[++num_regexs] = i+1;
 					regexs[0][i] = 0;		
 				
-			/*	
-            	    char * regexBuffer = (char*)malloc(strlen(regexs[host_regex_table[numRegexs-1]])+1);
-               		 strcpy(regexBuffer, regexs[0][host_regex_table[numRegexs-1]]);
+			/*
+            	    char * regexBuffer = (char*)malloc(strlen(regexs[host_regex_table[num_regexs-1]])+1);
+               		 strcpy(regexBuffer, regexs[0][host_regex_table[num_regexs-1]]);
                 	simplifyRe(&regexBuffer, &builder);
                 	free(regexBuffer);
 
-					regexs[0][host_regex_table[numRegexs-1]] = builder.re;
-			
-					printf("builder %s\n", builder.re);
+					regexs[0] + host_regex_table[num_regexs-1] = builder.re;
 			*/
+			
 				}
 			}
-			-- numRegexs;	
+			-- num_regexs;	
 				
-			for (int i = 0; i < numRegexs; i++) {
+			for (int i = 0; i < num_regexs; i++) {
 			//	printf("%s\n", regexs[0] + host_regex_table[i]);
 			}
 			
@@ -254,7 +252,7 @@ main(int argc, char **argv)
 			
 			endCopyStringsToDevice = CycleTimer::currentSeconds();
 
-			pMatch(device_line, device_table, numLines, numRegexs, timerOn, device_regex, device_regex_table, lines, table);
+			pMatch(device_line, device_line_table, num_lines, num_regexs, timerOn, device_regex, device_regex_table, lines, host_line_table);
 			endPMatch = CycleTimer::currentSeconds();	
 		
 		}
