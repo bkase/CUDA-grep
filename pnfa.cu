@@ -264,12 +264,12 @@ void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs
     }
 
 	if (!time) {
-		unsigned char *hostResult = (unsigned char *) malloc (numLines * sizeof(unsigned char) * numRegexs);
-		cudaMemcpy(hostResult, devResult, numLines * sizeof(unsigned char) * numRegexs, cudaMemcpyDeviceToHost);
+		unsigned char *hostResult = (unsigned char *) malloc (numLines * sizeof(unsigned char));
+		cudaMemcpy(hostResult, devResult, numLines * sizeof(unsigned char), cudaMemcpyDeviceToHost);
 
-		for (int i = 0; i < numLines * numRegexs; i++) {
+		for (int i = 0; i < numLines; i++) {
 			if(hostResult[i] == 1) 
-				PRINT(time, "%s\n", lines[0] + hostLineStarts[i % numLines]); //[i % numLines]);
+				PRINT(time, "%s\n", lines[0] + hostLineStarts[i]); //[i % numLines]);
 		}
 	}
 
