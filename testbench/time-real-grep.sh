@@ -9,5 +9,10 @@ FILE=./sample
 
 while read line
 do
-	time egrep "^$line$" ./newlua
+	egrep "^$line$" ./newlua &
+	while `ps aux | grep 'egrep'` != ""
+	do
+		
+		done
+
 done < $FILE
