@@ -238,11 +238,28 @@ __global__ void parallelMatch(char * bigLine, u32 * tableOfLineStarts, int numLi
 
 				char * lineSegment = bigLine + tableOfLineStarts[i];
 				if (panypmatch(st, lineSegment, &d1, &d2)) 
-					devResult[j * numLines + i] = 1;
+					devResult[i] = 1;
 				else
-					devResult[j * numLines + i] = 0;
+					devResult[i] = 0;
 
 			}
+		}
+}
+
+
+__global__ void test(char *bigLine, u32 *tableOfLineStarts, int numLines, unsigned char *devResult) {
+		for (int k = 0; k <  2000; k++) {
+		for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < numLines; i += gridDim.x * blockDim.x) { 
+			char * lineSegment = bigLine + tableOfLineStarts[i];
+			for (int j = 0; j < pstrlen(lineSegment); j ++) {
+				if (lineSegment[i] == '\n')
+					devResult[i] = 1;
+				else
+					devResult[i] = 0;
+				break;
+			}
+
+		}
 		}
 }
 
@@ -252,9 +269,10 @@ void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs
 	cudaFuncSetCacheConfig(parallelMatch, cudaFuncCachePreferShared);
 
 	unsigned char *devResult;
-	cudaMalloc(&devResult, numLines * sizeof(unsigned char) * numRegexs);
+	cudaMalloc(&devResult, numLines * sizeof(unsigned char) );
 
 	parallelMatch<<<512, 160>>>(bigLine, tableOfLineStarts, numLines, numRegexs, time, regexLines, regexTable, devResult);
+	//test<<<512,160>>>(bigLine, tableOfLineStarts, numLines, devResult);
 	cudaThreadSynchronize();
 
     cudaError_t error = cudaGetLastError();
