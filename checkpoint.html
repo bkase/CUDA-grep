@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="CUDA grep : Manish and Brandon's 15418 final project" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>CUDA grep</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/bkase/CUDA-grep-site">Fork Me on GitHub</a>
+
+          <h1 id="project_title">CUDA grep</h1>
+          <h2 id="project_tagline">Manish and Brandon's 15418 final project</h2>
+
+          <section id="downloads">
+            <a class="zip_download_link" href="https://github.com/bkase/CUDA-grep-site/zipball/master">Download this project as a .zip file</a>
+            <a class="tar_download_link" href="https://github.com/bkase/CUDA-grep-site/tarball/master">Download this project as a tar.gz file</a>
+          </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>Updated Time Table (what we plan to do)</h1>
+
+<h3>HalfWeek1:</h3>
+
+<ul>
+<li>Study for 418 exam - Brandon, Manish</li>
+</ul><h3>HalfWeek2:</h3>
+
+<ul>
+<li>Improve performance of code -- right now cudaMemcpy is a huge limiting factor. Maybe getting rid of multiple memcpy’s and using a single one will speed things up? -- Start talking about this -- Manish, Brandon</li>
+<li>Pack the lines into one Array (the first fix) - Brandon, Manish</li>
+</ul><h3>HalfWeek3:</h3>
+
+<ul>
+<li>Pack the NFA into an Array so we only use one memcpy - Brandon (talk with Manish)</li>
+<li>Work more on Parallelizing the Regex (across characters / across branches within NFA) - Manish (talk with Brandon)</li>
+</ul><h3>HalfWeek4:</h3>
+
+<ul>
+<li>Make NFA visualizer nicer - Brandon </li>
+<li>Matching multiple regular expressions on the same body of text. - Manish</li>
+<li>Find a good body of text to use for the demo with a good set of regular expressions - Manish and Brandon</li>
+<li>Implement more regex features if time allows - Brandon</li>
+</ul><h3>HalfWeek5:</h3>
+
+<ul>
+<li>Get ready for the presentation - Manish, Brandon</li>
+</ul><h1>Work Completed so far</h1>
+
+<p>We started off by understanding Russ Cox’s code - he had a sequential regular expression matcher for CPUs. We fixed a few bugs with his code and then created a bunch of helper modules like an NFA visualizer &amp; a test bench to help us with debugging issues later on.  After this we implemented a few more features such as support for escape characters, character classes (ranges) and wildcard characters to ensure that we supported most of egrep’s features.</p>
+
+<p>The next step was porting this code over to CUDA. As of right now, we have ported most of the code over. We set up a CUDA kernel that works similarly to our sequential implementation and uses a single thread.  </p>
+
+<h3>Update as of April 23</h3>
+
+<p>Over the weekend we managed to get parallel matching across lines working. The results were a little surprising. When we launched a kernel with 1 block and 1 thread the time taken for matching was 0.11s. Launching it with 256 threads (SIMD) in 1 block brought that time down to 0.026s. This was surprising considering that we thought that SIMD might slow things down because of high divergence. We also observed that 0.026s was a barrier that couldn’t be breached even with a larger number of thread blocks. A little more research showed that this was the amount of time it took for the CUDA kernel to get set up as launching an empty kernel performed similarly as well. Therefore the time it takes for matching a simple NFA like the one we experimented with is negligible and is bounded by the time it takes to set up a CUDA kernel. </p>
+
+<p>As a result our goal moving forward might change just a little bit. Maybe a more complicated regular expression won’t be bounded by the CUDA kernel set up time. If it is still bounded, then we might need to launch a single kernel and match multiple regular expressions within that kernel to effectively hide the overhead involved in launching a CUDA kernel. </p>
+
+<h1>Updates on Goals</h1>
+
+<h3>Old Plan to Achieve</h3>
+
+<ul>
+<li>Implement a basic sequential regex engine with these characters *+?()| from the starter code and the articles mentioned in the resources section
+(Done)</li>
+<li>Parallelize the regex engine and show close to linear speedup of the regex matching.
+(In Progress -- hopefully we can deliver this)</li>
+<li>Implement more regex primitives: character classes, positive and negative assertions, etc.
+(Done: character classes, wildcard character, escape special characters)</li>
+</ul><h3>Hope to Achieve</h3>
+
+<ul>
+<li>An application of the parallel regular expression matcher
+(We probably won’t have time for this as we will be tuning our code for performance )</li>
+<li>Near-complete implementation of perl’s regex syntax (excluding backreferences which are not regular and cannot be represented efficiently with an NFA)
+(Possible, but again we should focus on everything else first)</li>
+</ul><h2>Goals for May 10th (not including those completed)</h2>
+
+<ul>
+<li><p>Keep parallelizing the regex engine and show close to linear speedup 
+on regex matching. -- This may only be realized by computing more than one regular expression per CUDA kernel call (as described above).</p></li>
+<li><p>Reduce the overhead of the cudaMemcpys (right now we need a call per NFA state and per line of text -- we want this down to ONE call for the entire NFA and ONE call for the entire body of text.</p></li>
+<li><p>Find a good use-case body of text to show for the demo with a good set of regular expression patterns that shows the true power of the parallel regex evaluator.</p></li>
+</ul><h1>Plan to show</h1>
+
+<ul>
+<li>We plan to demo our regular expression solver with a few test cases (Maybe even a couple from the audience?) </li>
+<li>Also, we plan to include graphs to show how our solution scales compared to egrep and a sequential regex</li>
+</ul><h1>Preliminary Results</h1>
+
+<p>(times taken with <code>./nfa -t -f romeojuliet.txt 'ROMEO'</code>)</p>
+
+<h3>CUDA Parallel</h3>
+
+<pre><code>Parallel CopyNFAToDevice 0.0531 seconds
+Parallel CopyStringsToDevice 0.8060 seconds
+Parallel pMatch 0.1426 seconds
+Parallel Total 1.0038 seconds
+</code></pre>
+
+<h3>CUDA Sequential (1 thread, 1 threadblock)</h3>
+
+<pre><code>Sequential CopyNFAToDevice = 0.1689 seconds
+Sequential CopyStringsToDevice = 0.8648 seconds
+Sequential pMatch = 0.1472 seconds
+Sequential Total = 1.1831 seconds
+</code></pre>
+
+<h3>Sequential CPU</h3>
+
+<pre><code>Sequential Total = 0.0097 seconds
+</code></pre>
+
+<h1>Issues and Unknowns</h1>
+
+<ul>
+<li>We don’t know how much speedup to expect yet since we haven't implemented all the forms of parallelism yet. We hope to get a substantial speedup but we can't really predict a multiplicative factor at least until we mitigate the large times memory copying</li>
+<li>We also have noticed that the serial CUDA implementation is several orders of magnitude slower than the CPU implementation -- once we implement more complex regex evaluations (and multiple per CUDA call) on CUDA hopefully we can construct certain patterns that are faster</li>
+</ul>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">CUDA grep maintained by <a href="https://github.com/bkase">bkase</a> and <a href="https://github.com/mburman">mburman</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>

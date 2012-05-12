@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="CUDA grep : Manish and Brandon's 15418 final project" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>CUDA grep</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/bkase/CUDA-grep-site">Fork Me on GitHub</a>
+
+          <h1 id="project_title">CUDA grep</h1>
+          <h2 id="project_tagline">Manish and Brandon's 15418 final project</h2>
+
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>Summary</h1>
+
+<p>We plan to implement a parallel regular expression matcher (a parallel version of GNU grep) in CUDA for GPUs.</p>
+
+<h1>Background</h1>
+
+<p>Regular expression matching has many important uses in different fields. Many times people are faced with the challenge of finding a small chunk in a huge amount of data -- finding the needle within a haystack. If this data is text, regular expressions make searching for this data much less of a hassle. For example: with a few special characters you could formulate a search string that a web crawler might use to identify and scrape links from a web page.  </p>
+
+<p>Regular expression matching has inherently parallel points. For example if represented as an NFA, multiple state transitions from a particular state can be processed by different tasks to speed it up. Also, the same regular expression could run on multiple data sets parallely. There is SIMD to be exploited (in Cuda - threads within a block) if you are willing to work hard enough for it. For example, on state transitions all we care about is the current state, whether or not it matches and the next transition if there is a match. When different threads are looking at different states, they still perform the same above mentioned function. </p>
+
+<h3>Basic high-level algorithm:</h3>
+
+<pre><code>Load dataset and regular expression
+Compute NFA (in parallel?) from regular expression
+LineLoop: for all lines in dataset:
+    for all characters in line:
+        Run NFA (in parallel on splits) on character (stop at newline)
+            if (match):
+                print line
+                break LineLoop 
+</code></pre>
+
+<h1>Challenge</h1>
+
+<p>In terms of programming, we have 4 primary challenges </p>
+
+<ul>
+<li>Parallelizing the generation of the NFA (we’re not sure how fast the sequential version will be or if parallelizing it is even feasible or needs to be done) </li>
+<li>Parallelizing over NFA state transitions</li>
+<li>SIMD parallelization over text in a single line</li>
+<li>SPMD parallelization over multiple lines</li>
+</ul><h2>Potential Problems:</h2>
+
+<p>A potential problem (of which there are possibly many that we haven’t thought of yet) we might face is with regard to cycles in an NFA. Our initial thought was to naively parallelize over transitions. For example, in the figure above, at transition q3, two threads would be created one of which would move on to q4 and the other to q1 and continue. Here we notice that both threads might once again reach q3 if the data set keeps matching and multiply again. Hence the number of threads that we would require for a regular expression like this when matching a specifically tailored input set might grow exponentially. </p>
+
+<p>Also, our workload is a body of text. Since we aim to emulate GNU grep, we do not care about matches that span newlines. Therefore, every line of our dataset is independent of the other lines. There will be high locality per line (SIMD per line, SPMD across lines). We do need to generate the NFA before we can start searching through any of the text. There is also divergent execution since some thread may fail to match early on in an expression, while another almost makes it to the end of an expression. In addition, there is high communication to computation ratio, since the computation is really around O(n) in the size of the input -- but if our input fits in the RAM of the GPUs, we can benefit from the large bandwidth of the DDR5 bus.</p>
+
+<h1>Resources</h1>
+
+<p>We plan to use Ken Thompson’s NFA paper(<a href="http://dl.acm.org/citation.cfm?id=363387">1</a>) as a guide and an article on the topic by Russ Cox(<a href="http://swtch.com/~rsc/regexp/regexp1.html">2</a>) as a reference for this project. We will probably use Russ Cox’s NFA C implementation(<a href="http://swtch.com/~rsc/regexp/nfa.c.txt">3</a>) as starter code.</p>
+
+<h1>Goals/Deliverables</h1>
+
+<h2>Plan to Achieve</h2>
+
+<ul>
+<li>Implement a basic sequential regex engine with these characters *+?()| from the starter code and the articles mentioned in the resources section</li>
+<li>Parallelize the regex engine and show close to linear speedup of the regex matching.</li>
+<li>Implement more regex primitives: character classes, positive and negative assertions, etc.</li>
+</ul><h2>Hope to Achieve</h2>
+
+<ul>
+<li>An application of the parallel regular expression matcher</li>
+<li>Near-complete implementation of perl’s regex syntax (excluding backreferences which are not regular and cannot be represented efficiently with an NFA) </li>
+</ul><h2>Demo</h2>
+
+<ul>
+<li>Running our parallel regular expression matcher to the class on a large set of texts. If there’s time to implement an application of the regular expression matcher, show this as well.</li>
+</ul><h1>Platform</h1>
+
+<p>Nvdia GPUs (CUDA) in Gates. It makes sense to use this parallel system for implementing grep because we believe there to be both SPMD and SIMD parallelism in this problem. Additionally, we think this would be a good solution for those who need to high performance regular-expression pattern matching in real world applications.</p>
+
+<h1>Proposed Schedule</h1>
+
+<h3>Week 1:</h3>
+
+<ul>
+<li>
+<em>What we plan to do:</em> Look at existing code by Russ Cox1 for regular expression matching using NFA’s. Learn how it works (understand all the code) and get the serial version up and running. Also, look at other possible approaches to parallelizing regular expressions. Maybe branching on NFA’s is not the best parallel solution possible? </li>
+<li>
+<em>What we actually did:</em> 4/3: nfa.c compiles and runs, begin understanding code</li>
+</ul><h3>Week 2:</h3>
+
+<ul>
+<li>
+<em>What we plan to do:</em> We should have a serial version up and running. Work on parallelizing this code using CUDA initially over the datasets. Different thread blocks process different lines of text. Also look at parallelizing NFA generation. Is it worth doing?</li>
+<li><em>What we actually did:</em></li>
+</ul><h3>Week 3:</h3>
+
+<ul>
+<li>
+<em>What we plan to do:</em> We have parallelized over the input data. Now we should parallelize across transitions in the NFA. Here we might issues such as work scheduling. In the case that we have an exponential number of transitions for complex regular expressions, how do we distribute work?</li>
+<li><em>What we actually did:</em></li>
+</ul><h3>Week 4:</h3>
+
+<ul>
+<li>
+<em>What we plan to do:</em> Continue with this approach and/or find more ways to parallelize the code.</li>
+<li><em>What we actually did:</em></li>
+</ul><h3>Week 5:</h3>
+
+<ul>
+<li>
+<em>What we plan to do:</em> Try to find an application that is curtailed due to slow string matching (maybe some sort of data mining using Twitter) Possibly work on trying to use our new and faster version of regular expression matching to try and speed it up just to prove that its awesome.</li>
+<li><em>What we actually did:</em></li>
+</ul><h3>Week 6:</h3>
+
+<ul>
+<li>
+<em>What we plan to do:</em> Buffer week. Just in case something takes longer than expected. Also, prepare for presentation of the final project.</li>
+<li><em>What we actually did:</em></li>
+</ul><p>In case we have more time - Maybe package this into a real library that people could use in applications that might require high performance regular expression matching. In any case, we will probably do this eventually (even if it’s after the end of the semester).</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">CUDA grep maintained by <a href="https://github.com/bkase">bkase</a> and <a href="https://github.com/mburman">mburman</a></p>
+        Published with <a href="http://pages.github.com">GitHub Pages</a>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
