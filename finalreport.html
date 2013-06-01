@@ -68,7 +68,7 @@ for all regular expressions
 
 <h2>APPROACH</h2>
 
-<p>Our matcher uses CUDA to run most of the computation on the GPU. (no surprises there). We used C and tested on the GHC 5000 computers.</p>
+<p>Our matcher uses CUDA to run most of the computation on the GPU (no surprises there). We used C and tested on the GHC 5000 computers.</p>
 
 <p>Initially our plan was to parallelize across the branches of the NFA. Once we had begun though, we realized that it was a much better idea to parallelize across the lines of the input file against which we had to match regexs. We opted to go this route because the time it took to match a single regex against a single line was basically negligible. Hence making matching faster by parallelizing across branches of the NFA would potentially end up wasting threads. Parallelizing across lines was a much better option. </p>
 
@@ -97,7 +97,7 @@ Our regular expression file was 2000 lines of the same regular expression. We no
 <li>Our sequential matcher consistently takes about <code>0.29s</code> per regex </li>
 <li>Our sequential matcher is anywhere from <code>~3x to ~11x</code> slower than GNU grep</li>
 </ul><p><em>Note</em>: 
-we tried running multiple instances of grep (by using ampersand), but observed that grep did not perform better than the average <code>0.025s to 0.113s</code>. We think that this might be because regular expression matching on the CPU is bandwidth bound as well. </p>
+we tried running multiple instances of grep concurrently (by daemon-izing), but observed that grep did not perform better than the average <code>0.025s to 0.113s</code>. We think that this might be because regular expression matching on the CPU is bandwidth bound as well. </p>
 
 <h3>Parallel Matching</h3>
 
@@ -163,6 +163,7 @@ We used <a href="Russ%20Cox's%20NFA%20C%20Implementation">http://swtch.com/~rsc/
     <!-- FOOTER  -->
     <div id="footer_wrap" class="outer">
       <footer class="inner">
+      <p>Discuss on <a href="https://news.ycombinator.com/item?id=5803943">hackernews</a></p>
         <p class="copyright">CUDA grep maintained by <a href="https://github.com/bkase">bkase</a> and <a href="https://github.com/mburman">mburman</a></p>
         <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
       </footer>
