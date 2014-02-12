@@ -13,6 +13,9 @@
  * Can be distributed under the MIT license, see bottom of file.
  */
 
+#include <cuda_runtime_api.h>
+#include <cuda.h>
+
 #include "pnfa.h"
 #include "cycleTimer.h"
 
@@ -47,7 +50,7 @@ int checkCmdLine(int argc, char **argv, char **fileName, char **regexFile, int *
 	}
 
     if (simplified == 1) {
-        char * clean_simplified = stringify(builder.re);
+        char * clean_simplified = stringifyRegex(builder.re);
         printf("\nSimplified Regex: %s\n", clean_simplified);
         free(clean_simplified);
         exit(0);
@@ -57,7 +60,7 @@ int checkCmdLine(int argc, char **argv, char **fileName, char **regexFile, int *
     _simpleReBuilder(&builder);
 
     if (postfix == 1) {
-        char * clean_post = stringify(post);
+        char * clean_post = stringifyRegex(post);
 		printf("\nPostfix buffer: %s\n", clean_post);
         free(clean_post);
         exit(0);
@@ -169,8 +172,8 @@ main(int argc, char **argv)
 			-- num_lines;	
 	
 			
-			cudaMalloc(&device_line_table, sizeof (u32) * (len ));		
-			cudaMalloc(&device_line, sizeof (char) * (len + 1));		
+			cudaMalloc((void**)&device_line_table, sizeof (u32) * (len ));		
+			cudaMalloc((void**)&device_line, sizeof (char) * (len + 1));		
 
 			cudaMemcpy(device_line_table, table, sizeof(u32) * (len), cudaMemcpyHostToDevice);
 			cudaMemcpy(device_line, *lines, sizeof(char) * (len + 1), cudaMemcpyHostToDevice);
@@ -206,8 +209,8 @@ main(int argc, char **argv)
 			}
 	
 				
-			cudaMalloc(&device_line_table, sizeof (u32) * (len ));		
-			cudaMalloc(&device_line, sizeof (char) * (len + 1));		
+			cudaMalloc((void**)&device_line_table, sizeof (u32) * (len ));		
+			cudaMalloc((void**)&device_line, sizeof (char) * (len + 1));		
 
 			cudaMemcpy(device_line_table, host_line_table, sizeof(u32) * (len), cudaMemcpyHostToDevice);
 			cudaMemcpy(device_line, *lines, sizeof(char) * (len + 1), cudaMemcpyHostToDevice);
@@ -237,8 +240,8 @@ main(int argc, char **argv)
 				
 			//for (int i = 0; i < num_regexs; i++) {}	
 
-			cudaMalloc(&device_regex_table, sizeof (u32) * (len ));		
-			cudaMalloc(&device_regex, sizeof (char) * (len + 1));		
+			cudaMalloc((void**)&device_regex_table, sizeof (u32) * (len ));		
+			cudaMalloc((void**)&device_regex, sizeof (char) * (len + 1));		
 
 			cudaMemcpy(device_regex_table, host_regex_table, sizeof(u32) * (len), cudaMemcpyHostToDevice);
 			cudaMemcpy(device_regex, *regexs, sizeof(char) * (len + 1), cudaMemcpyHostToDevice);

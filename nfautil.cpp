@@ -1,4 +1,6 @@
 #include "nfautil.h"
+#include <cuda_runtime_api.h>
+#include <cuda.h>
 
 /*
  * Visualize the NFA in stdout
@@ -158,7 +160,8 @@ copyStringsToDevice(char **lines, int numLines, char ** device_line, u32 ** devi
     //TODO: Instead of making some tableOfLineStarts empty use a different index for the avoided line[i]
     int size = 0;
     u32 * tableOfLineStarts = (u32 *)malloc(sizeof(u32)*(numLines+1));
-    for (int i = 0; i < numLines; i++) {
+    int i;
+    for (i = 0; i < numLines; i++) {
         tableOfLineStarts[i] = size;
         size += strlen(lines[i]) + 1;
     }
@@ -166,7 +169,7 @@ copyStringsToDevice(char **lines, int numLines, char ** device_line, u32 ** devi
 
     char * bigLine = (char *)malloc(size);
     char * bigLineRunner = bigLine;
-    for (int i = 0; i < numLines; i++) {
+    for (i = 0; i < numLines; i++) {
         //the size of this line is the runningTotal at the next index minus the runningTotal at this one (subtract off the null byte)
         int lineSize = (tableOfLineStarts[i+1] - tableOfLineStarts[i]) - 1;
         if (lineSize != 0) {

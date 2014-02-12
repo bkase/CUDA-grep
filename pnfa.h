@@ -10,10 +10,6 @@
 #define PUSH(l, state) l->s[l->n++] = state
 #define POP(l) l->s[--(l->n)]; 
 
-__device__ State *states;
-__device__ static int pnstate;
-__device__ State pmatchstate = { Match };	/* matching state */
-
 // host function which calls parallelNFAKernel
 void parallelNFA(char *postfix);
 // host function which calls parallelMatchingKernel

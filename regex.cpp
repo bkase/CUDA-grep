@@ -37,19 +37,20 @@ void insertIntoComplexRe(char ** complexRe, int where, int * len, char * toInser
 
     /* buffer the rest */
     buf = (char*)malloc(*len);
-    for (int k = i+2; k < *len-(insertLen+1); k++) {
+    int k;
+    for (k = i+2; k < *len-(insertLen+1); k++) {
         buf[k-(i+2)] = DEREF(complexRe,k);
     }
 
     /* insert the string */
 
-    for (int k = 0; k < insertLen; k++) {
+    for (k = 0; k < insertLen; k++) {
         DEREF(complexRe, i++) = toInsert[k];
     }
 
     /* put the buffer back in */
 
-    for (int k = i; k < *len; k++) {
+    for (k = i; k < *len; k++) {
         DEREF(complexRe,k) = buf[k-i];
     }
 
@@ -109,7 +110,8 @@ void putRange(SimpleReBuilder * builder, char start, char end, int * bi) {
 
     builder->re[i++] = PAREN_OPEN;
     builder->re[i++] = start;
-    for (char k = start+1; k <= end; k++) {
+    char k;
+    for (k = start+1; k <= end; k++) {
         builder->re[i++] = ALTERNATE;
         builder->re[i++] = k;
     }
@@ -187,7 +189,7 @@ SimpleReBuilder * simplifyRe(char ** complexRe, SimpleReBuilder * builder) {
 
 }
 
-char * stringify(const char * oldRegex) {
+char * stringifyRegex(const char * oldRegex) {
     int len = strlen(oldRegex);
     char * newRegex = (char*)malloc(len+1);
     int i;

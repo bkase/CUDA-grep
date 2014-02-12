@@ -3,7 +3,7 @@
 #include <cuda_runtime.h>
 #include <driver_functions.h>
 
-#include "pnfa.h"
+#include "pnfa.cuh"
 
 __device__ inline State* pstate(int , State *, State *);
 __device__ inline Frag pfrag(State *, Ptrlist *);
