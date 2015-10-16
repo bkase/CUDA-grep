@@ -291,7 +291,7 @@ void pMatch(char * bigLine, u32 * tableOfLineStarts, int numLines, int numRegexs
 		}
 	}
 
-	cudaFree(&devResult);
-	cudaFree(&bigLine);
-    cudaFree(&tableOfLineStarts);
+	cudaFree(devResult);
+	cudaFree(bigLine);
+    cudaFree(tableOfLineStarts);
 }

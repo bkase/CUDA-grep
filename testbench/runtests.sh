@@ -29,7 +29,7 @@ do
 	do
 		testcase=${teststrings[$i]}
 		#echo $testcase
-		if diff <(../nfa -f $file $testcase) <(egrep $testcase $file) >> RESULTS; then
+		if diff <(../nfa -f $file $testcase) <(egrep -x $testcase $file) >> RESULTS; then
 			cat /dev/null
 		else
 			pass=0
@@ -41,7 +41,7 @@ done
 #special test for .*
 for file in $FILES
 do	
-	if diff <(../nfa -f $file '.*') <(egrep '.*' $file) >> RESULTS; then
+	if diff <(../nfa -f $file '.*') <(egrep -x '.*' $file) >> RESULTS; then
 		cat /dev/null
 	else
 		pass=0
