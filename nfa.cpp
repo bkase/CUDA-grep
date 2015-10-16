@@ -170,7 +170,7 @@ main(int argc, char **argv)
 				}
 			}
 			
-			if((lines[0])[len-1] == '\n')//если файл кончился не переводом строки, то про последнее смещение забывать не надо.
+			if((lines[0])[len-1] == '\n')/*if at the end file not '\n', then we not forgot last offset */
 			  --num_lines;
 
 
