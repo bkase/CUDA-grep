@@ -507,7 +507,7 @@ void readFile (char *fileName, char ***lines, int *lineIndex) {
 			if (newLen == 0) {
 				fputs("Error reading file", stderr);
 			} else {
-				source[++newLen] = '\0'; /* Just to be safe. */
+				source[newLen] = '\0'; /* Just to be safe. */
 			}
 		}
 		fclose(fp);

@@ -160,7 +160,7 @@ main(int argc, char **argv)
 			u32 * table = (u32 *) malloc(sizeof(u32) * strlen(*lines));
 			table[0] = 0;
 			int num_lines = 0;
-	
+
 			int len = strlen(lines[0]);
 			for (int i = 0; i < len; i++) {
 				if ((lines[0])[i] == '\n') {
@@ -169,8 +169,12 @@ main(int argc, char **argv)
 				
 				}
 			}
-			-- num_lines;	
-	
+			
+			if((lines[0])[len-1] == '\n')/*if at the end file not '\n', then we not forgot last offset */
+			  --num_lines;
+
+
+
 			
 			cudaMalloc((void**)&device_line_table, sizeof (u32) * (len ));		
 			cudaMalloc((void**)&device_line, sizeof (char) * (len + 1));		
@@ -180,8 +184,14 @@ main(int argc, char **argv)
 			
 			endCopyStringsToDevice = CycleTimer::currentSeconds();
 
-			u32 numRegexes = 1;
-			pMatch(device_line, device_line_table, num_lines, 1, timerOn, device_regex, &numRegexes, lines, table);
+			u32 host_regex_table[1]; /*offsets to regexes on host*/
+			u32 *device_regex_table; /*this array will contain host_regex_table*/
+			host_regex_table[0]=0;   /*in case of one regex offset must be 0*/
+			cudaMalloc((void**)&device_regex_table, sizeof (u32) );
+			cudaMemcpy(device_regex_table, host_regex_table, sizeof(u32), cudaMemcpyHostToDevice);/*copy regex offset to device*/
+			pMatch(device_line, device_line_table, num_lines, 1, timerOn, device_regex, device_regex_table, lines, table);
+
+			
 			endPMatch = CycleTimer::currentSeconds();
 		}
 		// match a bunch of regexs
